@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-title" content="對面說">
 <meta name="theme-color" content="#1c2a5a">
 <meta name="color-scheme" content="light">
-<title>對面說 — 中日面對面翻譯</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<title>對面說 — 中文 × 日語 / 韓語 面對面翻譯</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"對面說","short_name":"對面說","start_url":".","display":"standalone","background_color":"#f7f4ec","theme_color":"#1c2a5a"}'>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c2a5a'/%3E%3Ctext x='50' y='65' font-size='48' text-anchor='middle' fill='%23f7f4ec' font-family='sans-serif'%3E話%3C/text%3E%3C/svg%3E">
 <style>
 :root{
   --paper:#f7f4ec;      /* 和紙 */
@@ -23,18 +23,23 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:light;
-  font-family:-apple-system,"PingFang TC","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans TC","Noto Sans JP",sans-serif;
+  font-family:-apple-system,"PingFang TC","Hiragino Sans","Apple SD Gothic Neo","Noto Sans TC","Noto Sans JP","Noto Sans KR",sans-serif;
   -webkit-text-size-adjust:100%;overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;background:var(--paper);
   padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 
-/* 兩個面對面的半面 */
 .side{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;background:var(--paper)}
-.side.ja{transform:rotate(180deg)}
-.side.ja.upright{transform:none}
-.divider{flex:none;height:36px;background:var(--ink);display:flex;align-items:center;justify-content:center}
-.divider button{background:var(--paper);color:var(--ink);border:0;border-radius:999px;
-  padding:5px 14px;font-size:13px;font-weight:600;letter-spacing:.02em;line-height:1}
+.side.them{transform:rotate(180deg)}
+.side.them.upright{transform:none}
+
+.divider{flex:none;height:40px;background:var(--ink);position:relative;display:flex;align-items:center;justify-content:center;gap:8px}
+.dot{position:absolute;left:14px;width:10px;height:10px;border-radius:50%;background:#999}
+.dot.ok{background:#3fa34d}.dot.bad{background:var(--vermilion)}
+.seg{display:flex;background:rgba(255,255,255,.14);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--paper);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;line-height:1}
+.seg button.on{background:var(--paper);color:var(--ink)}
+.divider .flip{background:transparent;color:var(--paper);border:1px solid rgba(255,255,255,.4);border-radius:999px;
+  padding:5px 11px;font-size:13px;font-weight:600;line-height:1}
 
 .log{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px;
   display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
@@ -42,8 +47,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 .empty b{display:block;font-size:22px;color:var(--ink);margin-bottom:6px}
 
 .msg{max-width:88%;border-radius:18px;padding:10px 14px;line-height:1.45;position:relative;word-break:break-word}
-.msg.me{align-self:flex-end;background:var(--bubble-me);border:1px solid var(--line);
-  border-bottom-right-radius:6px}
+.msg.me{align-self:flex-end;background:var(--bubble-me);border:1px solid var(--line);border-bottom-right-radius:6px}
 .msg.them{align-self:flex-start;background:var(--bubble-them);border-bottom-left-radius:6px}
 .msg .big{font-size:26px;font-weight:600;line-height:1.35}
 .msg.me .big{font-size:20px;font-weight:500}
@@ -54,12 +58,10 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 .msg.pending .big{color:var(--ink-soft);font-weight:400;font-size:18px}
 .msg.error{background:#fbe9e5}.msg.error .big{font-size:18px;color:var(--vermilion)}
 
-/* 輸入區 */
 .bar{flex:none;padding:8px 10px 10px;border-top:1px solid var(--line);background:var(--paper)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chips button{flex:none;border:1px solid var(--line);background:#fff;color:var(--ink);
-  border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.chips button{flex:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
 .row{display:flex;gap:8px;align-items:flex-end}
 .row textarea{flex:1;resize:none;border:1.5px solid var(--line);border-radius:14px;background:#fff;
   font:inherit;font-size:17px;padding:10px 12px;min-height:44px;max-height:96px;line-height:1.35;color:var(--ink)}
@@ -73,9 +75,27 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,65,42,.5)}50%{box-shadow:0 0 0 10px rgba(200,65,42,0)}}
 @media (prefers-reduced-motion:reduce){.btn.mic.on{animation:none}}
 
+.btn.book{background:#fff;border:1.5px solid var(--line);color:var(--ink);font-size:20px}
+.book{position:fixed;left:0;top:0;right:0;bottom:0;background:var(--paper);z-index:8;display:none;flex-direction:column;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.book.open{display:flex}
+.book.rot{transform:rotate(180deg)}
+.book-head{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.book-head input{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;font:inherit;font-size:16px;background:#fff;color:var(--ink)}
+.book-head input:focus{outline:none;border-color:var(--ink)}
+.book-head button{border:0;background:transparent;color:var(--ink);font-size:15px;font-weight:600;padding:8px}
+.cats{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;flex:none;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cats button{flex:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px}
+.cats button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.book-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 12px 12px}
+.ph{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;color:var(--ink);font:inherit}
+.ph .z{font-size:16px;font-weight:600}
+.ph .f{font-size:17px;margin-top:2px}
+.ph .r{font-size:13px;color:var(--ink-soft)}
+.book-note{font-size:13px;color:var(--ink-soft);padding:6px 12px 0;text-align:center}
 .toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ink);color:var(--paper);
-  padding:10px 16px;border-radius:12px;font-size:14px;max-width:80%;text-align:center;z-index:9;
-  opacity:0;transition:opacity .2s;pointer-events:none}
+  padding:10px 16px;border-radius:12px;font-size:14px;max-width:80%;text-align:center;z-index:9;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 </style>
 </head>
@@ -85,11 +105,12 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   <!-- 中文這一面（自己） -->
   <section class="side zh" id="side-zh">
     <div class="log" id="log-zh">
-      <div class="empty"><b>對面說</b>你說中文，對面顯示日文。<br>按麥克風說話，或直接打字。</div>
+      <div class="empty"><b>對面說</b>你說中文，對面顯示<span id="empty-zh-lang">日文</span>。<br>按麥克風說話，或直接打字。</div>
     </div>
     <div class="bar">
       <div class="chips" id="chips-zh"></div>
       <div class="row">
+        <button class="btn book" id="book-zh" aria-label="片語本">📖</button>
         <button class="btn mic" id="mic-zh" aria-label="中文語音輸入">🎤</button>
         <textarea id="in-zh" rows="1" placeholder="說中文…" enterkeyhint="send"></textarea>
         <button class="btn send" id="send-zh" aria-label="送出">譯</button>
@@ -97,23 +118,40 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
     </div>
   </section>
 
-  <div class="divider"><button id="flip">翻轉對面 ⟲</button></div>
+  <div class="divider">
+    <span class="dot" id="dot" title="伺服器連線"></span>
+    <div class="seg" id="seg">
+      <button type="button" data-lang="ja">日本語</button>
+      <button type="button" data-lang="ko">한국어</button>
+    </div>
+    <button type="button" class="flip" id="flip">翻轉 ⟲</button>
+  </div>
 
-  <!-- 日文這一面（對方，預設旋轉 180° 讓對面的人看） -->
-  <section class="side ja" id="side-ja">
-    <div class="log" id="log-ja">
-      <div class="empty"><b>おはなし</b>日本語で話すと、相手側に中国語で表示されます。<br>マイクを押して話すか、入力してください。</div>
+  <!-- 對方那一面（日文或韓文，預設旋轉 180°） -->
+  <section class="side them" id="side-them">
+    <div class="log" id="log-them">
+      <div class="empty" id="empty-them"></div>
     </div>
     <div class="bar">
-      <div class="chips" id="chips-ja"></div>
+      <div class="chips" id="chips-them"></div>
       <div class="row">
-        <button class="btn mic" id="mic-ja" aria-label="日本語音声入力">🎤</button>
-        <textarea id="in-ja" rows="1" placeholder="日本語で…" enterkeyhint="send"></textarea>
-        <button class="btn send" id="send-ja" aria-label="送信">訳</button>
+        <button class="btn book" id="book-them" aria-label="片語本">📖</button>
+        <button class="btn mic" id="mic-them" aria-label="語音輸入">🎤</button>
+        <textarea id="in-them" rows="1" placeholder="" enterkeyhint="send"></textarea>
+        <button class="btn send" id="send-them" aria-label="送出">訳</button>
       </div>
     </div>
   </section>
 
+</div>
+<div class="book" id="book">
+  <div class="book-head">
+    <input id="book-q" type="search" placeholder="搜尋片語（中文或外語）" autocomplete="off">
+    <button type="button" id="book-close">關閉</button>
+  </div>
+  <div class="cats" id="cats"></div>
+  <div class="book-note">離線片語本：不需網路。點一下就顯示給對面並朗讀。</div>
+  <div class="book-list" id="book-list"></div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -127,65 +165,189 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   var ENDPOINT = (h.indexOf('claude.ai')>-1 || h.indexOf('anthropic.com')>-1 || h.indexOf('claudeusercontent.com')>-1)
     ? 'https://api.anthropic.com/v1/messages' : WORKER_URL;
 
+  /* ── 語言設定 ── */
   var LANG = {
-    zh:{ code:'zh-TW', name:'繁體中文（台灣）', other:'ja', ttsFallback:'zh-CN',
+    zh:{ code:'zh-TW', name:'繁體中文（台灣）', cn:'中文',
          chips:['你好，我不會說日文','請問這個多少錢？','廁所在哪裡？','可以刷卡嗎？','請再說一次','謝謝你'] },
-    ja:{ code:'ja-JP', name:'日本語', other:'zh', ttsFallback:'ja',
-         chips:['こんにちは','少々お待ちください','こちらへどうぞ','おすすめはこれです','大丈夫ですか？','ありがとうございます'] }
+    ja:{ code:'ja-JP', name:'日本語', cn:'日文', sendLabel:'訳', placeholder:'日本語で…', pending:'翻訳中…', fail:'翻訳できませんでした',
+         reading:'r 為全句的平假名讀音',
+         emptyTitle:'おはなし', emptyBody:'日本語で話すと、相手側に中国語で表示されます。\nマイクを押して話すか、入力してください。',
+         zhChips:['你好，我不會說日文','請問這個多少錢？','廁所在哪裡？','可以刷卡嗎？','請再說一次','謝謝你'],
+         chips:['こんにちは','少々お待ちください','こちらへどうぞ','おすすめはこれです','大丈夫ですか？','ありがとうございます'] },
+    ko:{ code:'ko-KR', name:'韓語', cn:'韓文', sendLabel:'번역', placeholder:'한국어로…', pending:'번역 중…', fail:'번역하지 못했습니다',
+         reading:'r 為全句的羅馬拼音（Revised Romanization）',
+         emptyTitle:'마주말', emptyBody:'한국어로 말하면 상대방 쪽에 중국어로 표시됩니다.\n마이크를 누르거나 입력해 주세요.',
+         zhChips:['你好，我不會說韓文','請問這個多少錢？','廁所在哪裡？','可以刷卡嗎？','請再說一次','謝謝你'],
+         chips:['안녕하세요','잠시만 기다려 주세요','이쪽으로 오세요','이게 제일 인기예요','괜찮으세요?','감사합니다'] }
   };
+  /* ── 內建離線片語本（中／日／韓＋讀音） ── */
+  var PHRASES = [
+    // 問候
+    {c:'問候',zh:'你好',ja:'こんにちは',jr:'こんにちは',ko:'안녕하세요',kr:'annyeonghaseyo'},
+    {c:'問候',zh:'早安',ja:'おはようございます',jr:'おはようございます',ko:'좋은 아침입니다',kr:'joeun achimimnida'},
+    {c:'問候',zh:'晚安',ja:'おやすみなさい',jr:'おやすみなさい',ko:'안녕히 주무세요',kr:'annyeonghi jumuseyo'},
+    {c:'問候',zh:'謝謝',ja:'ありがとうございます',jr:'ありがとうございます',ko:'감사합니다',kr:'gamsahamnida'},
+    {c:'問候',zh:'不好意思／對不起',ja:'すみません',jr:'すみません',ko:'죄송합니다',kr:'joesonghamnida'},
+    {c:'問候',zh:'不客氣',ja:'どういたしまして',jr:'どういたしまして',ko:'천만에요',kr:'cheonmaneyo'},
+    {c:'問候',zh:'再見',ja:'さようなら',jr:'さようなら',ko:'안녕히 가세요',kr:'annyeonghi gaseyo'},
+    {c:'問候',zh:'我是台灣人',ja:'私は台湾人です',jr:'わたしはたいわんじんです',ko:'저는 대만 사람입니다',kr:'jeoneun daeman saramimnida'},
+    {c:'問候',zh:'我不會說日文／韓文',ja:'日本語が話せません',jr:'にほんごがはなせません',ko:'한국어를 못해요',kr:'hangugeoreul mothaeyo'},
+    {c:'問候',zh:'請說慢一點',ja:'ゆっくり話してください',jr:'ゆっくりはなしてください',ko:'천천히 말씀해 주세요',kr:'cheoncheonhi malsseumhae juseyo'},
+    {c:'問候',zh:'請再說一次',ja:'もう一度お願いします',jr:'もういちどおねがいします',ko:'다시 한 번 말씀해 주세요',kr:'dasi han beon malsseumhae juseyo'},
+    {c:'問候',zh:'請寫下來',ja:'書いてください',jr:'かいてください',ko:'써 주세요',kr:'sseo juseyo'},
+    {c:'問候',zh:'是',ja:'はい',jr:'はい',ko:'네',kr:'ne'},
+    {c:'問候',zh:'不是',ja:'いいえ',jr:'いいえ',ko:'아니요',kr:'aniyo'},
+    {c:'問候',zh:'好的，我知道了',ja:'はい、わかりました',jr:'はい、わかりました',ko:'네, 알겠습니다',kr:'ne, algetseumnida'},
+    {c:'問候',zh:'我聽不懂',ja:'わかりません',jr:'わかりません',ko:'잘 모르겠어요',kr:'jal moreugesseoyo'},
+    // 交通
+    {c:'交通',zh:'車站在哪裡？',ja:'駅はどこですか？',jr:'えきはどこですか',ko:'역이 어디예요?',kr:'yeogi eodiyeyo?'},
+    {c:'交通',zh:'我要去這裡（指地圖）',ja:'ここに行きたいです',jr:'ここにいきたいです',ko:'여기에 가고 싶어요',kr:'yeogie gago sipeoyo'},
+    {c:'交通',zh:'這班車到○○嗎？',ja:'この電車は○○に行きますか？',jr:'このでんしゃは○○にいきますか',ko:'이 열차 ○○에 가요?',kr:'i yeolcha ○○e gayo?'},
+    {c:'交通',zh:'要在哪裡換車？',ja:'どこで乗り換えますか？',jr:'どこでのりかえますか',ko:'어디서 갈아타요?',kr:'eodiseo garatayo?'},
+    {c:'交通',zh:'請問計程車招呼站在哪？',ja:'タクシー乗り場はどこですか？',jr:'たくしーのりばはどこですか',ko:'택시 타는 곳이 어디예요?',kr:'taeksi taneun gosi eodiyeyo?'},
+    {c:'交通',zh:'請到這個地址',ja:'この住所までお願いします',jr:'このじゅうしょまでおねがいします',ko:'이 주소로 가 주세요',kr:'i jusoro ga juseyo'},
+    {c:'交通',zh:'請在這裡停',ja:'ここで止めてください',jr:'ここでとめてください',ko:'여기서 세워 주세요',kr:'yeogiseo sewo juseyo'},
+    {c:'交通',zh:'到機場要多久？',ja:'空港まで何分かかりますか？',jr:'くうこうまでなんぷんかかりますか',ko:'공항까지 얼마나 걸려요?',kr:'gonghangkkaji eolmana geollyeoyo?'},
+    {c:'交通',zh:'我要一張到○○的票',ja:'○○まで一枚ください',jr:'○○までいちまいください',ko:'○○까지 한 장 주세요',kr:'○○kkaji han jang juseyo'},
+    {c:'交通',zh:'最後一班車幾點？',ja:'終電は何時ですか？',jr:'しゅうでんはなんじですか',ko:'막차가 몇 시예요?',kr:'makchaga myeot siyeyo?'},
+    // 購物
+    {c:'購物',zh:'這個多少錢？',ja:'これはいくらですか？',jr:'これはいくらですか',ko:'이거 얼마예요?',kr:'igeo eolmayeyo?'},
+    {c:'購物',zh:'可以刷卡嗎？',ja:'カードは使えますか？',jr:'かーどはつかえますか',ko:'카드 돼요?',kr:'kadeu dwaeyo?'},
+    {c:'購物',zh:'可以免稅嗎？',ja:'免税できますか？',jr:'めんぜいできますか',ko:'면세 되나요?',kr:'myeonse doenayo?'},
+    {c:'購物',zh:'我要這個',ja:'これをください',jr:'これをください',ko:'이거 주세요',kr:'igeo juseyo'},
+    {c:'購物',zh:'有其他顏色嗎？',ja:'ほかの色はありますか？',jr:'ほかのいろはありますか',ko:'다른 색 있어요?',kr:'dareun saek isseoyo?'},
+    {c:'購物',zh:'有大一號的嗎？',ja:'もう少し大きいサイズはありますか？',jr:'もうすこしおおきいさいずはありますか',ko:'더 큰 사이즈 있어요?',kr:'deo keun saijeu isseoyo?'},
+    {c:'購物',zh:'可以試穿嗎？',ja:'試着してもいいですか？',jr:'しちゃくしてもいいですか',ko:'입어 봐도 돼요?',kr:'ibeo bwado dwaeyo?'},
+    {c:'購物',zh:'請幫我包裝',ja:'包んでください',jr:'つつんでください',ko:'포장해 주세요',kr:'pojanghae juseyo'},
+    {c:'購物',zh:'不用袋子',ja:'袋はいりません',jr:'ふくろはいりません',ko:'봉투는 필요 없어요',kr:'bongtuneun piryo eopseoyo'},
+    {c:'購物',zh:'我只是看看',ja:'見ているだけです',jr:'みているだけです',ko:'그냥 구경 중이에요',kr:'geunyang gugyeong jungieyo'},
+    {c:'購物',zh:'請給我收據',ja:'レシートをください',jr:'れしーとをください',ko:'영수증 주세요',kr:'yeongsujeung juseyo'},
+    // 餐飲
+    {c:'餐飲',zh:'兩位',ja:'二人です',jr:'ふたりです',ko:'두 명이요',kr:'du myeongiyo'},
+    {c:'餐飲',zh:'有中文菜單嗎？',ja:'中国語のメニューはありますか？',jr:'ちゅうごくごのめにゅーはありますか',ko:'중국어 메뉴 있어요?',kr:'junggugeo menyu isseoyo?'},
+    {c:'餐飲',zh:'請給我推薦的',ja:'おすすめをお願いします',jr:'おすすめをおねがいします',ko:'추천 메뉴로 주세요',kr:'chucheon menyuro juseyo'},
+    {c:'餐飲',zh:'我要點餐',ja:'注文お願いします',jr:'ちゅうもんおねがいします',ko:'주문할게요',kr:'jumunhalgeyo'},
+    {c:'餐飲',zh:'我要這個和這個',ja:'これとこれをください',jr:'これとこれをください',ko:'이거랑 이거 주세요',kr:'igeorang igeo juseyo'},
+    {c:'餐飲',zh:'不要太辣',ja:'辛くしないでください',jr:'からくしないでください',ko:'안 맵게 해 주세요',kr:'an maepge hae juseyo'},
+    {c:'餐飲',zh:'我對○○過敏',ja:'○○アレルギーがあります',jr:'○○あれるぎーがあります',ko:'○○ 알레르기가 있어요',kr:'○○ allereugiga isseoyo'},
+    {c:'餐飲',zh:'我吃素',ja:'ベジタリアンです',jr:'べじたりあんです',ko:'채식주의자예요',kr:'chaesikjuuijayeyo'},
+    {c:'餐飲',zh:'請給我水',ja:'お水をください',jr:'おみずをください',ko:'물 주세요',kr:'mul juseyo'},
+    {c:'餐飲',zh:'請結帳',ja:'お会計お願いします',jr:'おかいけいおねがいします',ko:'계산해 주세요',kr:'gyesanhae juseyo'},
+    {c:'餐飲',zh:'可以分開結帳嗎？',ja:'別々に払えますか？',jr:'べつべつにはらえますか',ko:'따로 계산할 수 있어요?',kr:'ttaro gyesanhal su isseoyo?'},
+    {c:'餐飲',zh:'很好吃',ja:'とても美味しかったです',jr:'とてもおいしかったです',ko:'정말 맛있었어요',kr:'jeongmal masisseosseoyo'},
+    {c:'餐飲',zh:'可以外帶嗎？',ja:'持ち帰りできますか？',jr:'もちかえりできますか',ko:'포장 되나요?',kr:'pojang doenayo?'},
+    // 住宿
+    {c:'住宿',zh:'我有訂房，名字是○○',ja:'予約しています。○○です',jr:'よやくしています。○○です',ko:'예약했어요. 이름은 ○○입니다',kr:'yeyakhaesseoyo. ireumeun ○○imnida'},
+    {c:'住宿',zh:'可以寄放行李嗎？',ja:'荷物を預かってもらえますか？',jr:'にもつをあずかってもらえますか',ko:'짐 맡길 수 있어요?',kr:'jim matgil su isseoyo?'},
+    {c:'住宿',zh:'幾點退房？',ja:'チェックアウトは何時ですか？',jr:'ちぇっくあうとはなんじですか',ko:'체크아웃 몇 시예요?',kr:'chekeuaut myeot siyeyo?'},
+    {c:'住宿',zh:'Wi-Fi 密碼是什麼？',ja:'Wi-Fiのパスワードは何ですか？',jr:'わいふぁいのぱすわーどはなんですか',ko:'와이파이 비밀번호가 뭐예요?',kr:'waipai bimilbeonhoga mwoyeyo?'},
+    {c:'住宿',zh:'早餐幾點開始？',ja:'朝食は何時からですか？',jr:'ちょうしょくはなんじからですか',ko:'아침 식사 몇 시부터예요?',kr:'achim siksa myeot sibuteoyeyo?'},
+    {c:'住宿',zh:'房間的○○壞了',ja:'部屋の○○が壊れています',jr:'へやの○○がこわれています',ko:'방 ○○이 고장 났어요',kr:'bang ○○i gojang nasseoyo'},
+    {c:'住宿',zh:'請幫我叫計程車',ja:'タクシーを呼んでください',jr:'たくしーをよんでください',ko:'택시 불러 주세요',kr:'taeksi bulleo juseyo'},
+    // 緊急
+    {c:'緊急',zh:'請幫幫我',ja:'助けてください',jr:'たすけてください',ko:'도와주세요',kr:'dowajuseyo'},
+    {c:'緊急',zh:'請叫救護車',ja:'救急車を呼んでください',jr:'きゅうきゅうしゃをよんでください',ko:'구급차를 불러 주세요',kr:'gugeupchareul bulleo juseyo'},
+    {c:'緊急',zh:'請叫警察',ja:'警察を呼んでください',jr:'けいさつをよんでください',ko:'경찰을 불러 주세요',kr:'gyeongchareul bulleo juseyo'},
+    {c:'緊急',zh:'我不舒服',ja:'気分が悪いです',jr:'きぶんがわるいです',ko:'몸이 안 좋아요',kr:'momi an joayo'},
+    {c:'緊急',zh:'這裡痛',ja:'ここが痛いです',jr:'ここがいたいです',ko:'여기가 아파요',kr:'yeogiga apayo'},
+    {c:'緊急',zh:'醫院在哪裡？',ja:'病院はどこですか？',jr:'びょういんはどこですか',ko:'병원이 어디예요?',kr:'byeongwoni eodiyeyo?'},
+    {c:'緊急',zh:'藥局在哪裡？',ja:'薬局はどこですか？',jr:'やっきょくはどこですか',ko:'약국이 어디예요?',kr:'yakgugi eodiyeyo?'},
+    {c:'緊急',zh:'我的護照不見了',ja:'パスポートをなくしました',jr:'ぱすぽーとをなくしました',ko:'여권을 잃어버렸어요',kr:'yeogwoneul ireobeoryeosseoyo'},
+    {c:'緊急',zh:'我迷路了',ja:'道に迷いました',jr:'みちにまよいました',ko:'길을 잃었어요',kr:'gireul ireosseoyo'},
+    {c:'緊急',zh:'廁所在哪裡？',ja:'トイレはどこですか？',jr:'といれはどこですか',ko:'화장실이 어디예요?',kr:'hwajangsiri eodiyeyo?'},
+    // 數字時間
+    {c:'數字',zh:'一、二、三、四、五',ja:'いち、に、さん、し、ご',jr:'いち、に、さん、し、ご',ko:'일, 이, 삼, 사, 오',kr:'il, i, sam, sa, o'},
+    {c:'數字',zh:'六、七、八、九、十',ja:'ろく、しち、はち、きゅう、じゅう',jr:'ろく、しち、はち、きゅう、じゅう',ko:'육, 칠, 팔, 구, 십',kr:'yuk, chil, pal, gu, sip'},
+    {c:'數字',zh:'一百／一千／一萬',ja:'ひゃく／せん／いちまん',jr:'ひゃく／せん／いちまん',ko:'백 / 천 / 만',kr:'baek / cheon / man'},
+    {c:'數字',zh:'現在幾點？',ja:'今何時ですか？',jr:'いまなんじですか',ko:'지금 몇 시예요?',kr:'jigeum myeot siyeyo?'},
+    {c:'數字',zh:'今天／明天／後天',ja:'今日／明日／明後日',jr:'きょう／あした／あさって',ko:'오늘 / 내일 / 모레',kr:'oneul / naeil / more'},
+    {c:'數字',zh:'幾點開門？',ja:'何時に開きますか？',jr:'なんじにあきますか',ko:'몇 시에 열어요?',kr:'myeot sie yeoreoyo?'},
+    {c:'數字',zh:'幾點關門？',ja:'何時に閉まりますか？',jr:'なんじにしまりますか',ko:'몇 시에 닫아요?',kr:'myeot sie dadayo?'}
+  ];
+
+  var them = 'ja';   // 對面目前的語言
+  try{ var saved = localStorage.getItem('them-lang'); if(saved && LANG[saved]) them = saved; }catch(e){}
 
   var $ = function(id){ return document.getElementById(id); };
-  var logs = { zh:$('log-zh'), ja:$('log-ja') };
-  var inputs = { zh:$('in-zh'), ja:$('in-ja') };
-  var mics = { zh:$('mic-zh'), ja:$('mic-ja') };
+  var SIDE = { zh:'zh', them:'them' };
+  var logs = { zh:$('log-zh'), them:$('log-them') };
+  var inputs = { zh:$('in-zh'), them:$('in-them') };
+  var mics = { zh:$('mic-zh'), them:$('mic-them') };
   var busy = false;
+  function langOf(side){ return side==='zh' ? 'zh' : them; }
+  function otherSide(side){ return side==='zh' ? 'them' : 'zh'; }
 
-  /* ── toast（不用 alert） ── */
+  /* ── toast ── */
   var toastTimer;
   function toast(t){
     var el = $('toast'); el.textContent = t; el.className = 'toast show';
     clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.className = 'toast'; }, 4000);
   }
 
-  /* ── 快速片語 ── */
-  function buildChips(lang){
-    var box = $('chips-'+lang);
-    LANG[lang].chips.forEach(function(p){
+  /* ── 依對面語言重繪 UI ── */
+  function buildChips(side, list){
+    var box = $('chips-'+side); box.innerHTML = '';
+    list.forEach(function(p){
       var b = document.createElement('button'); b.type='button'; b.textContent = p;
-      b.addEventListener('click', function(){ send(lang, p); });
+      b.addEventListener('click', function(){ send(side, p); });
       box.appendChild(b);
     });
   }
-  buildChips('zh'); buildChips('ja');
+  function applyLang(){
+    var L = LANG[them];
+    buildChips('zh', L.zhChips);
+    buildChips('them', L.chips);
+    inputs.them.placeholder = L.placeholder;
+    $('send-them').textContent = L.sendLabel;
+    $('empty-zh-lang').textContent = L.cn;
+    var e = $('empty-them');
+    if(e){ e.innerHTML=''; var b=document.createElement('b'); b.textContent=L.emptyTitle; e.appendChild(b);
+      L.emptyBody.split('\n').forEach(function(line,i){ if(i) e.appendChild(document.createElement('br')); e.appendChild(document.createTextNode(line)); }); }
+    var segs = $('seg').querySelectorAll('button');
+    for(var i=0;i<segs.length;i++) segs[i].className = segs[i].getAttribute('data-lang')===them ? 'on' : '';
+    document.title = '對面說 — 中文 × '+L.cn;
+  }
+  $('seg').addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('button') : e.target;
+    if(!b || !b.getAttribute('data-lang')) return;
+    var l = b.getAttribute('data-lang');
+    if(l===them) return;
+    stopRec();
+    them = l; try{ localStorage.setItem('them-lang', l); }catch(err){}
+    applyLang();
+    toast('對面改為'+LANG[l].cn+'，之前的對話保留');
+  });
 
   /* ── 語音合成 ── */
+  var voicesReady = false;
   function speak(text, lang){
     if(!('speechSynthesis' in window)){ toast('此裝置不支援朗讀'); return; }
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text);
     u.lang = LANG[lang].code; u.rate = 0.95;
-    var voices = speechSynthesis.getVoices();
+    var voices = speechSynthesis.getVoices(), pre = LANG[lang].code.split('-')[0];
     for(var i=0;i<voices.length;i++){
-      if(voices[i].lang.replace('_','-').indexOf(LANG[lang].code.split('-')[0])===0){ u.voice = voices[i]; break; }
+      if(voices[i].lang.replace('_','-').indexOf(pre)===0){ u.voice = voices[i]; break; }
     }
     speechSynthesis.speak(u);
   }
-  if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){}; }
+  if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){ voicesReady = true; }; }
 
   /* ── 語音辨識 ── */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  var rec = null, recLang = null;
-  function startRec(lang){
+  var rec = null, recSide = null;
+  function startRec(side){
     if(!SR){ toast('此瀏覽器不支援語音輸入，請打字'); return; }
     if(rec){ stopRec(); return; }
-    rec = new SR(); recLang = lang;
+    var lang = langOf(side);
+    rec = new SR(); recSide = side;
     rec.lang = LANG[lang].code; rec.interimResults = true; rec.continuous = false;
-    mics[lang].className = 'btn mic on';
+    mics[side].className = 'btn mic on';
     rec.onresult = function(e){
       var t = '';
       for(var i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
-      inputs[lang].value = t;
-      if(e.results[e.results.length-1].isFinal){ stopRec(); send(lang, t); }
+      inputs[side].value = t;
+      if(e.results[e.results.length-1].isFinal){ stopRec(); send(side, t); }
     };
     rec.onerror = function(e){ stopRec(); if(e.error!=='no-speech' && e.error!=='aborted') toast('語音輸入失敗：'+e.error); };
     rec.onend = function(){ stopRec(); };
@@ -193,17 +355,17 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   }
   function stopRec(){
     if(rec){ try{ rec.onend=null; rec.stop(); }catch(e){} }
-    if(recLang) mics[recLang].className = 'btn mic';
-    rec = null; recLang = null;
+    if(recSide) mics[recSide].className = 'btn mic';
+    rec = null; recSide = null;
   }
-  if(!SR){ mics.zh.className = 'btn mic off'; mics.ja.className = 'btn mic off'; }
+  if(!SR){ mics.zh.className = 'btn mic off'; mics.them.className = 'btn mic off'; }
 
   /* ── 對話氣泡 ── */
-  function clearEmpty(lang){
-    var e = logs[lang].querySelector('.empty'); if(e) e.parentNode.removeChild(e);
+  function clearEmpty(side){
+    var e = logs[side].querySelector('.empty'); if(e) e.parentNode.removeChild(e);
   }
-  function addBubble(lang, kind, big, sub, speakLang){
-    clearEmpty(lang);
+  function addBubble(side, kind, big, sub, speakLang){
+    clearEmpty(side);
     var d = document.createElement('div'); d.className = 'msg '+kind;
     var b = document.createElement('div'); b.className = 'big'; b.textContent = big; d.appendChild(b);
     if(sub){ var s = document.createElement('div'); s.className='sub'; s.textContent = sub; d.appendChild(s); }
@@ -213,19 +375,52 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
       btn.addEventListener('click', function(){ speak(big, speakLang); });
       d.appendChild(btn);
     }
-    logs[lang].appendChild(d);
-    logs[lang].scrollTop = logs[lang].scrollHeight;
+    logs[side].appendChild(d);
+    logs[side].scrollTop = logs[side].scrollHeight;
     return d;
   }
 
+  /* ── 翻譯快取（成功過的句子存手機，離線可重用） ── */
+  var CACHE_KEY = 'tx-cache-v1', cache = {};
+  try{ cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}') || {}; }catch(e){ cache = {}; }
+  function cacheGet(from,to,text){ return cache[from+'>'+to+'|'+text] || null; }
+  function cacheSet(from,to,text,res){
+    cache[from+'>'+to+'|'+text] = {t:res.t, r:res.r||''};
+    var keys = Object.keys(cache);
+    if(keys.length>400){ keys.slice(0, keys.length-400).forEach(function(k){ delete cache[k]; }); }
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); }catch(e){}
+  }
+  function norm(t){ return t.replace(/[\s？?！!。．.，,、～~]/g,'').toLowerCase(); }
+  /* 離線時在片語本找最接近的句子 */
+  function lookupPhrase(text, from, to){
+    var q = norm(text); if(!q) return null;
+    var best = null, bestScore = 0;
+    PHRASES.forEach(function(p){
+      var src = from==='zh' ? p.zh : p[from];
+      var n = norm(src);
+      var score = 0;
+      if(n===q) score = 3;
+      else if(n.indexOf(q)>-1 || q.indexOf(n)>-1) score = 2 - Math.abs(n.length-q.length)/Math.max(n.length,q.length);
+      if(score>bestScore){ bestScore = score; best = p; }
+    });
+    if(!best || bestScore<1.4) return null;
+    return to==='zh' ? {t:best.zh, r:''} : {t:best[to], r:to==='ja' ? best.jr : best.kr};
+  }
+
   /* ── 翻譯 ── */
-  function translate(text, from){
-    var to = LANG[from].other;
+  function translate(text, from, to){
+    var hit = cacheGet(from,to,text);
+    if(hit) return Promise.resolve(hit);
+    if(navigator.onLine===false){
+      var p = lookupPhrase(text, from, to);
+      return p ? Promise.resolve(p) : Promise.reject(new Error('offline'));
+    }
+    var readingRule = to==='zh' ? 'r 留空字串' : LANG[to].reading;
     var prompt =
-      '你是一位專業的中日口譯員，正在協助兩個人面對面交談。\n'+
+      '你是一位專業的口譯員，正在協助兩個人面對面交談。\n'+
       '請把下面這句「'+LANG[from].name+'」翻譯成「'+LANG[to].name+'」，口語、自然、有禮貌，保留原意，不要加註解。\n'+
-      '只回傳 JSON（不要用 ```），格式：{"t":"翻譯結果","r":"翻譯結果的讀音"}\n'+
-      '「r」的規則：若翻譯成日文，r 為全句的平假名讀音；若翻譯成中文，r 留空字串。\n\n'+
+      '只回傳 JSON（不要用 ```），格式：{"t":"翻譯結果","r":"讀音"}\n'+
+      '「r」的規則：'+readingRule+'。\n\n'+
       '原文：'+text;
     return fetch(ENDPOINT, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -244,59 +439,138 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
       var m = txt.match(/\{[\s\S]*\}/);
       var obj = JSON.parse(m ? m[0] : txt);
       if(!obj.t) throw new Error('empty');
+      cacheSet(from,to,text,obj);
       return obj;
+    }).catch(function(err){
+      // 網路失敗 → 再試片語本
+      var msg = err.message||'';
+      if(msg==='Failed to fetch' || msg==='Load failed'){
+        var p = lookupPhrase(text, from, to);
+        if(p) return p;
+      }
+      throw err;
     });
   }
 
-  function send(lang, text){
-    text = (text || inputs[lang].value).trim();
+  function send(side, text){
+    text = (text || inputs[side].value).trim();
     if(!text || busy) return;
     busy = true;
-    var to = LANG[lang].other;
-    inputs[lang].value = ''; autosize(inputs[lang]);
-    addBubble(lang, 'me', text, null, null);
-    var pending = addBubble(to, 'pending them', lang==='zh' ? '翻訳中…' : '翻譯中…', null, null);
-    translate(text, lang).then(function(res){
+    var from = langOf(side), toSide = otherSide(side), to = langOf(toSide);
+    inputs[side].value = ''; autosize(inputs[side]);
+    addBubble(side, 'me', text, null, null);
+    var pending = addBubble(toSide, 'pending them', to==='zh' ? '翻譯中…' : LANG[to].pending, null, null);
+    translate(text, from, to).then(function(res){
       pending.parentNode.removeChild(pending);
-      addBubble(to, 'them', res.t, null, to);                    // 對面看到的翻譯
-      var mine = addBubble(lang, 'me', res.t, res.r || null, to); // 自己這邊也看到，方便跟著唸
+      addBubble(toSide, 'them', res.t, null, to);                    // 對面看到的翻譯
+      var mine = addBubble(side, 'me', res.t, res.r || null, to);    // 自己這邊也看到，方便跟著唸
       mine.style.background = '#fbfaf6';
       speak(res.t, to);
     }).catch(function(err){
       var msg = err.message || '網路錯誤';
-      if(msg==='Failed to fetch' || msg==='Load failed') msg = '連不到伺服器（'+ENDPOINT.replace(/^https?:\/\//,'')+'）';
+      if(msg==='offline') msg = '沒有網路，片語本裡也找不到這句。請按 📖 挑選片語';
+      else if(msg==='Failed to fetch' || msg==='Load failed') msg = navigator.onLine===false ? '手機目前沒有網路，請用 📖 片語本' : '連不到伺服器（'+ENDPOINT.replace(/^https?:\/\//,'')+'）';
       pending.className = 'msg them error';
-      pending.querySelector('.big').textContent = (lang==='zh' ? '翻訳できませんでした' : '翻譯失敗');
+      pending.querySelector('.big').textContent = to==='zh' ? '翻譯失敗' : LANG[to].fail;
       var s = document.createElement('div'); s.className='sub'; s.textContent = msg; pending.appendChild(s);
       toast('翻譯失敗：'+msg);
-      inputs[lang].value = text;
+      inputs[side].value = text;
     }).then(function(){ busy = false; });
   }
 
   /* ── 輸入框 ── */
   function autosize(ta){ ta.style.height='auto'; ta.style.height = Math.min(ta.scrollHeight, 96)+'px'; }
-  ['zh','ja'].forEach(function(lang){
-    var ta = inputs[lang];
+  ['zh','them'].forEach(function(side){
+    var ta = inputs[side];
     ta.addEventListener('input', function(){ autosize(ta); });
     ta.addEventListener('keydown', function(e){
-      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(lang); }
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(side); }
     });
-    $('send-'+lang).addEventListener('click', function(){ send(lang); });
-    mics[lang].addEventListener('click', function(){ startRec(lang); });
+    $('send-'+side).addEventListener('click', function(){ send(side); });
+    mics[side].addEventListener('click', function(){ startRec(side); });
   });
+
+  /* ── 片語本 UI ── */
+  var bookSide = 'zh', bookCat = '全部';
+  var CATS = ['全部'];
+  PHRASES.forEach(function(p){ if(CATS.indexOf(p.c)<0) CATS.push(p.c); });
+  function openBook(side){
+    stopRec();
+    bookSide = side;
+    var b = $('book');
+    b.className = 'book open' + (side==='them' && $('side-them').className.indexOf('upright')<0 ? ' rot' : '');
+    $('book-q').value = '';
+    renderCats(); renderBook();
+  }
+  function closeBook(){ $('book').className = 'book'; }
+  function renderCats(){
+    var box = $('cats'); box.innerHTML='';
+    CATS.forEach(function(c){
+      var b = document.createElement('button'); b.type='button'; b.textContent = c; b.className = c===bookCat ? 'on' : '';
+      b.addEventListener('click', function(){ bookCat = c; renderCats(); renderBook(); });
+      box.appendChild(b);
+    });
+  }
+  function renderBook(){
+    var list = $('book-list'); list.innerHTML='';
+    var q = norm($('book-q').value);
+    var lang = them, rk = lang==='ja' ? 'jr' : 'kr', n = 0;
+    PHRASES.forEach(function(p){
+      if(bookCat!=='全部' && p.c!==bookCat) return;
+      if(q && norm(p.zh).indexOf(q)<0 && norm(p[lang]).indexOf(q)<0 && norm(p[rk]).indexOf(q)<0) return;
+      var b = document.createElement('button'); b.type='button'; b.className='ph';
+      var z = document.createElement('div'); z.className='z'; z.textContent = p.zh;
+      var f = document.createElement('div'); f.className='f'; f.textContent = p[lang];
+      var r = document.createElement('div'); r.className='r'; r.textContent = p[rk];
+      if(bookSide==='them'){ b.appendChild(f); b.appendChild(r); b.appendChild(z); } else { b.appendChild(z); b.appendChild(f); b.appendChild(r); }
+      b.addEventListener('click', function(){ usePhrase(p); });
+      list.appendChild(b); n++;
+    });
+    if(!n){ var e = document.createElement('div'); e.className='book-note'; e.textContent='找不到符合的片語'; list.appendChild(e); }
+  }
+  function usePhrase(p){
+    closeBook();
+    var lang = them, rk = lang==='ja' ? 'jr' : 'kr';
+    if(bookSide==='zh'){
+      addBubble('zh', 'me', p.zh, null, null);
+      addBubble('them', 'them', p[lang], null, lang);
+      var mine = addBubble('zh', 'me', p[lang], p[rk], lang); mine.style.background='#fbfaf6';
+      speak(p[lang], lang);
+    } else {
+      addBubble('them', 'me', p[lang], null, null);
+      addBubble('zh', 'them', p.zh, null, 'zh');
+      var m2 = addBubble('them', 'me', p.zh, null, 'zh'); m2.style.background='#fbfaf6';
+      speak(p.zh, 'zh');
+    }
+  }
+  $('book-zh').addEventListener('click', function(){ openBook('zh'); });
+  $('book-them').addEventListener('click', function(){ openBook('them'); });
+  $('book-close').addEventListener('click', closeBook);
+  $('book-q').addEventListener('input', renderBook);
+
+  /* ── 開站時測 Worker 連線 ── */
+  function ping(){
+    if(ENDPOINT!==WORKER_URL){ $('dot').className='dot ok'; return; }
+    fetch(WORKER_URL+'/health', {method:'GET', cache:'no-store'}).then(function(r){
+      $('dot').className = r.ok ? 'dot ok' : 'dot bad';
+      if(!r.ok) toast('Worker 回應 HTTP '+r.status);
+    }).catch(function(){
+      $('dot').className = 'dot bad';
+      toast(navigator.onLine===false ? '沒有網路：可用 📖 離線片語本' : '連不到 Worker：可用 📖 離線片語本');
+    });
+  }
+  ping();
+  window.addEventListener('online', ping);
+  $('dot').addEventListener('click', ping);
 
   /* ── 翻轉對面（並排坐時用） ── */
   $('flip').addEventListener('click', function(){
-    var s = $('side-ja');
-    s.className = s.className.indexOf('upright')>-1 ? 'side ja' : 'side ja upright';
+    var s = $('side-them');
+    s.className = s.className.indexOf('upright')>-1 ? 'side them' : 'side them upright';
   });
-})();
-</script>
 
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
-}
+  applyLang();
+})();
 </script>
 </body>
 </html>
