@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-title" content="對面說">
 <meta name="theme-color" content="#1c2a5a">
 <meta name="color-scheme" content="light">
-<title>對面說 — 中文 × 日語 / 韓語 面對面翻譯</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<title>對面說 — 中文 × 日語 / 韓語 / 英語 面對面翻譯</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"對面說","short_name":"對面說","start_url":".","display":"standalone","background_color":"#f7f4ec","theme_color":"#1c2a5a"}'>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%231c2a5a'/%3E%3Ctext x='50' y='65' font-size='48' text-anchor='middle' fill='%23f7f4ec' font-family='sans-serif'%3E話%3C/text%3E%3C/svg%3E">
 <style>
 :root{
   --paper:#f7f4ec;      /* 和紙 */
@@ -23,7 +23,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:light;
-  font-family:-apple-system,"PingFang TC","Hiragino Sans","Apple SD Gothic Neo","Noto Sans TC","Noto Sans JP","Noto Sans KR",sans-serif;
+  font-family:-apple-system,"PingFang TC","Hiragino Sans","Apple SD Gothic Neo","Noto Sans TC","Noto Sans JP","Noto Sans KR","Helvetica Neue",sans-serif;
   -webkit-text-size-adjust:100%;overflow:hidden}
 #app{height:100%;display:flex;flex-direction:column;background:var(--paper);
   padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
@@ -36,10 +36,10 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 .dot{position:absolute;left:14px;width:10px;height:10px;border-radius:50%;background:#999}
 .dot.ok{background:#3fa34d}.dot.bad{background:var(--vermilion)}
 .seg{display:flex;background:rgba(255,255,255,.14);border-radius:999px;padding:3px}
-.seg button{border:0;background:transparent;color:var(--paper);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;line-height:1}
+.seg button{border:0;background:transparent;color:var(--paper);border-radius:999px;padding:5px 10px;font-size:13px;font-weight:600;line-height:1}
 .seg button.on{background:var(--paper);color:var(--ink)}
 .divider .flip{background:transparent;color:var(--paper);border:1px solid rgba(255,255,255,.4);border-radius:999px;
-  padding:5px 11px;font-size:13px;font-weight:600;line-height:1}
+  padding:5px 9px;font-size:13px;font-weight:600;line-height:1}
 
 .log{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px;
   display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
@@ -123,6 +123,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
     <div class="seg" id="seg">
       <button type="button" data-lang="ja">日本語</button>
       <button type="button" data-lang="ko">한국어</button>
+      <button type="button" data-lang="en">English</button>
     </div>
     <button type="button" class="flip" id="flip">翻轉 ⟲</button>
   </div>
@@ -174,6 +175,11 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
          emptyTitle:'おはなし', emptyBody:'日本語で話すと、相手側に中国語で表示されます。\nマイクを押して話すか、入力してください。',
          zhChips:['你好，我不會說日文','請問這個多少錢？','廁所在哪裡？','可以刷卡嗎？','請再說一次','謝謝你'],
          chips:['こんにちは','少々お待ちください','こちらへどうぞ','おすすめはこれです','大丈夫ですか？','ありがとうございます'] },
+    en:{ code:'en-US', name:'英語', cn:'英文', sendLabel:'Go', placeholder:'In English…', pending:'Translating…', fail:'Translation failed',
+         reading:'r 留空字串',
+         emptyTitle:'Face to Face', emptyBody:'Speak in English and it will appear in Chinese on the other side.\nTap the mic or type.',
+         zhChips:['你好，我不會說英文','請問這個多少錢？','廁所在哪裡？','可以刷卡嗎？','請再說一次','謝謝你'],
+         chips:['Hello','One moment, please','This way, please','This one is popular','Are you OK?','Thank you'] },
     ko:{ code:'ko-KR', name:'韓語', cn:'韓文', sendLabel:'번역', placeholder:'한국어로…', pending:'번역 중…', fail:'번역하지 못했습니다',
          reading:'r 為全句的羅馬拼音（Revised Romanization）',
          emptyTitle:'마주말', emptyBody:'한국어로 말하면 상대방 쪽에 중국어로 표시됩니다.\n마이크를 누르거나 입력해 주세요.',
@@ -183,88 +189,89 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   /* ── 內建離線片語本（中／日／韓＋讀音） ── */
   var PHRASES = [
     // 問候
-    {c:'問候',zh:'你好',ja:'こんにちは',jr:'こんにちは',ko:'안녕하세요',kr:'annyeonghaseyo'},
-    {c:'問候',zh:'早安',ja:'おはようございます',jr:'おはようございます',ko:'좋은 아침입니다',kr:'joeun achimimnida'},
-    {c:'問候',zh:'晚安',ja:'おやすみなさい',jr:'おやすみなさい',ko:'안녕히 주무세요',kr:'annyeonghi jumuseyo'},
-    {c:'問候',zh:'謝謝',ja:'ありがとうございます',jr:'ありがとうございます',ko:'감사합니다',kr:'gamsahamnida'},
-    {c:'問候',zh:'不好意思／對不起',ja:'すみません',jr:'すみません',ko:'죄송합니다',kr:'joesonghamnida'},
-    {c:'問候',zh:'不客氣',ja:'どういたしまして',jr:'どういたしまして',ko:'천만에요',kr:'cheonmaneyo'},
-    {c:'問候',zh:'再見',ja:'さようなら',jr:'さようなら',ko:'안녕히 가세요',kr:'annyeonghi gaseyo'},
-    {c:'問候',zh:'我是台灣人',ja:'私は台湾人です',jr:'わたしはたいわんじんです',ko:'저는 대만 사람입니다',kr:'jeoneun daeman saramimnida'},
-    {c:'問候',zh:'我不會說日文／韓文',ja:'日本語が話せません',jr:'にほんごがはなせません',ko:'한국어를 못해요',kr:'hangugeoreul mothaeyo'},
-    {c:'問候',zh:'請說慢一點',ja:'ゆっくり話してください',jr:'ゆっくりはなしてください',ko:'천천히 말씀해 주세요',kr:'cheoncheonhi malsseumhae juseyo'},
-    {c:'問候',zh:'請再說一次',ja:'もう一度お願いします',jr:'もういちどおねがいします',ko:'다시 한 번 말씀해 주세요',kr:'dasi han beon malsseumhae juseyo'},
-    {c:'問候',zh:'請寫下來',ja:'書いてください',jr:'かいてください',ko:'써 주세요',kr:'sseo juseyo'},
-    {c:'問候',zh:'是',ja:'はい',jr:'はい',ko:'네',kr:'ne'},
-    {c:'問候',zh:'不是',ja:'いいえ',jr:'いいえ',ko:'아니요',kr:'aniyo'},
-    {c:'問候',zh:'好的，我知道了',ja:'はい、わかりました',jr:'はい、わかりました',ko:'네, 알겠습니다',kr:'ne, algetseumnida'},
-    {c:'問候',zh:'我聽不懂',ja:'わかりません',jr:'わかりません',ko:'잘 모르겠어요',kr:'jal moreugesseoyo'},
+    {c:'問候',zh:'你好',ja:'こんにちは',jr:'こんにちは',ko:'안녕하세요',kr:'annyeonghaseyo',en:"Hello"},
+    {c:'問候',zh:'早安',ja:'おはようございます',jr:'おはようございます',ko:'좋은 아침입니다',kr:'joeun achimimnida',en:"Good morning"},
+    {c:'問候',zh:'晚安',ja:'おやすみなさい',jr:'おやすみなさい',ko:'안녕히 주무세요',kr:'annyeonghi jumuseyo',en:"Good night"},
+    {c:'問候',zh:'謝謝',ja:'ありがとうございます',jr:'ありがとうございます',ko:'감사합니다',kr:'gamsahamnida',en:"Thank you"},
+    {c:'問候',zh:'不好意思／對不起',ja:'すみません',jr:'すみません',ko:'죄송합니다',kr:'joesonghamnida',en:"Excuse me / Sorry"},
+    {c:'問候',zh:'不客氣',ja:'どういたしまして',jr:'どういたしまして',ko:'천만에요',kr:'cheonmaneyo',en:"You're welcome"},
+    {c:'問候',zh:'再見',ja:'さようなら',jr:'さようなら',ko:'안녕히 가세요',kr:'annyeonghi gaseyo',en:"Goodbye"},
+    {c:'問候',zh:'我是台灣人',ja:'私は台湾人です',jr:'わたしはたいわんじんです',ko:'저는 대만 사람입니다',kr:'jeoneun daeman saramimnida',en:"I'm from Taiwan"},
+    {c:'問候',zh:'我不會說日文／韓文',ja:'日本語が話せません',jr:'にほんごがはなせません',ko:'한국어를 못해요',kr:'hangugeoreul mothaeyo',en:"I don't speak English well"},
+    {c:'問候',zh:'請說慢一點',ja:'ゆっくり話してください',jr:'ゆっくりはなしてください',ko:'천천히 말씀해 주세요',kr:'cheoncheonhi malsseumhae juseyo',en:"Please speak slowly"},
+    {c:'問候',zh:'請再說一次',ja:'もう一度お願いします',jr:'もういちどおねがいします',ko:'다시 한 번 말씀해 주세요',kr:'dasi han beon malsseumhae juseyo',en:"Could you say that again?"},
+    {c:'問候',zh:'請寫下來',ja:'書いてください',jr:'かいてください',ko:'써 주세요',kr:'sseo juseyo',en:"Could you write it down?"},
+    {c:'問候',zh:'是',ja:'はい',jr:'はい',ko:'네',kr:'ne',en:"Yes"},
+    {c:'問候',zh:'不是',ja:'いいえ',jr:'いいえ',ko:'아니요',kr:'aniyo',en:"No"},
+    {c:'問候',zh:'好的，我知道了',ja:'はい、わかりました',jr:'はい、わかりました',ko:'네, 알겠습니다',kr:'ne, algetseumnida',en:"OK, I understand"},
+    {c:'問候',zh:'我聽不懂',ja:'わかりません',jr:'わかりません',ko:'잘 모르겠어요',kr:'jal moreugesseoyo',en:"I don't understand"},
     // 交通
-    {c:'交通',zh:'車站在哪裡？',ja:'駅はどこですか？',jr:'えきはどこですか',ko:'역이 어디예요?',kr:'yeogi eodiyeyo?'},
-    {c:'交通',zh:'我要去這裡（指地圖）',ja:'ここに行きたいです',jr:'ここにいきたいです',ko:'여기에 가고 싶어요',kr:'yeogie gago sipeoyo'},
-    {c:'交通',zh:'這班車到○○嗎？',ja:'この電車は○○に行きますか？',jr:'このでんしゃは○○にいきますか',ko:'이 열차 ○○에 가요?',kr:'i yeolcha ○○e gayo?'},
-    {c:'交通',zh:'要在哪裡換車？',ja:'どこで乗り換えますか？',jr:'どこでのりかえますか',ko:'어디서 갈아타요?',kr:'eodiseo garatayo?'},
-    {c:'交通',zh:'請問計程車招呼站在哪？',ja:'タクシー乗り場はどこですか？',jr:'たくしーのりばはどこですか',ko:'택시 타는 곳이 어디예요?',kr:'taeksi taneun gosi eodiyeyo?'},
-    {c:'交通',zh:'請到這個地址',ja:'この住所までお願いします',jr:'このじゅうしょまでおねがいします',ko:'이 주소로 가 주세요',kr:'i jusoro ga juseyo'},
-    {c:'交通',zh:'請在這裡停',ja:'ここで止めてください',jr:'ここでとめてください',ko:'여기서 세워 주세요',kr:'yeogiseo sewo juseyo'},
-    {c:'交通',zh:'到機場要多久？',ja:'空港まで何分かかりますか？',jr:'くうこうまでなんぷんかかりますか',ko:'공항까지 얼마나 걸려요?',kr:'gonghangkkaji eolmana geollyeoyo?'},
-    {c:'交通',zh:'我要一張到○○的票',ja:'○○まで一枚ください',jr:'○○までいちまいください',ko:'○○까지 한 장 주세요',kr:'○○kkaji han jang juseyo'},
-    {c:'交通',zh:'最後一班車幾點？',ja:'終電は何時ですか？',jr:'しゅうでんはなんじですか',ko:'막차가 몇 시예요?',kr:'makchaga myeot siyeyo?'},
+    {c:'交通',zh:'車站在哪裡？',ja:'駅はどこですか？',jr:'えきはどこですか',ko:'역이 어디예요?',kr:'yeogi eodiyeyo?',en:"Where is the station?"},
+    {c:'交通',zh:'我要去這裡（指地圖）',ja:'ここに行きたいです',jr:'ここにいきたいです',ko:'여기에 가고 싶어요',kr:'yeogie gago sipeoyo',en:"I'd like to go here"},
+    {c:'交通',zh:'這班車到○○嗎？',ja:'この電車は○○に行きますか？',jr:'このでんしゃは○○にいきますか',ko:'이 열차 ○○에 가요?',kr:'i yeolcha ○○e gayo?',en:"Does this train go to ○○?"},
+    {c:'交通',zh:'要在哪裡換車？',ja:'どこで乗り換えますか？',jr:'どこでのりかえますか',ko:'어디서 갈아타요?',kr:'eodiseo garatayo?',en:"Where do I transfer?"},
+    {c:'交通',zh:'請問計程車招呼站在哪？',ja:'タクシー乗り場はどこですか？',jr:'たくしーのりばはどこですか',ko:'택시 타는 곳이 어디예요?',kr:'taeksi taneun gosi eodiyeyo?',en:"Where is the taxi stand?"},
+    {c:'交通',zh:'請到這個地址',ja:'この住所までお願いします',jr:'このじゅうしょまでおねがいします',ko:'이 주소로 가 주세요',kr:'i jusoro ga juseyo',en:"To this address, please"},
+    {c:'交通',zh:'請在這裡停',ja:'ここで止めてください',jr:'ここでとめてください',ko:'여기서 세워 주세요',kr:'yeogiseo sewo juseyo',en:"Please stop here"},
+    {c:'交通',zh:'到機場要多久？',ja:'空港まで何分かかりますか？',jr:'くうこうまでなんぷんかかりますか',ko:'공항까지 얼마나 걸려요?',kr:'gonghangkkaji eolmana geollyeoyo?',en:"How long to the airport?"},
+    {c:'交通',zh:'我要一張到○○的票',ja:'○○まで一枚ください',jr:'○○までいちまいください',ko:'○○까지 한 장 주세요',kr:'○○kkaji han jang juseyo',en:"One ticket to ○○, please"},
+    {c:'交通',zh:'最後一班車幾點？',ja:'終電は何時ですか？',jr:'しゅうでんはなんじですか',ko:'막차가 몇 시예요?',kr:'makchaga myeot siyeyo?',en:"When is the last train?"},
     // 購物
-    {c:'購物',zh:'這個多少錢？',ja:'これはいくらですか？',jr:'これはいくらですか',ko:'이거 얼마예요?',kr:'igeo eolmayeyo?'},
-    {c:'購物',zh:'可以刷卡嗎？',ja:'カードは使えますか？',jr:'かーどはつかえますか',ko:'카드 돼요?',kr:'kadeu dwaeyo?'},
-    {c:'購物',zh:'可以免稅嗎？',ja:'免税できますか？',jr:'めんぜいできますか',ko:'면세 되나요?',kr:'myeonse doenayo?'},
-    {c:'購物',zh:'我要這個',ja:'これをください',jr:'これをください',ko:'이거 주세요',kr:'igeo juseyo'},
-    {c:'購物',zh:'有其他顏色嗎？',ja:'ほかの色はありますか？',jr:'ほかのいろはありますか',ko:'다른 색 있어요?',kr:'dareun saek isseoyo?'},
-    {c:'購物',zh:'有大一號的嗎？',ja:'もう少し大きいサイズはありますか？',jr:'もうすこしおおきいさいずはありますか',ko:'더 큰 사이즈 있어요?',kr:'deo keun saijeu isseoyo?'},
-    {c:'購物',zh:'可以試穿嗎？',ja:'試着してもいいですか？',jr:'しちゃくしてもいいですか',ko:'입어 봐도 돼요?',kr:'ibeo bwado dwaeyo?'},
-    {c:'購物',zh:'請幫我包裝',ja:'包んでください',jr:'つつんでください',ko:'포장해 주세요',kr:'pojanghae juseyo'},
-    {c:'購物',zh:'不用袋子',ja:'袋はいりません',jr:'ふくろはいりません',ko:'봉투는 필요 없어요',kr:'bongtuneun piryo eopseoyo'},
-    {c:'購物',zh:'我只是看看',ja:'見ているだけです',jr:'みているだけです',ko:'그냥 구경 중이에요',kr:'geunyang gugyeong jungieyo'},
-    {c:'購物',zh:'請給我收據',ja:'レシートをください',jr:'れしーとをください',ko:'영수증 주세요',kr:'yeongsujeung juseyo'},
+    {c:'購物',zh:'這個多少錢？',ja:'これはいくらですか？',jr:'これはいくらですか',ko:'이거 얼마예요?',kr:'igeo eolmayeyo?',en:"How much is this?"},
+    {c:'購物',zh:'可以刷卡嗎？',ja:'カードは使えますか？',jr:'かーどはつかえますか',ko:'카드 돼요?',kr:'kadeu dwaeyo?',en:"Can I pay by card?"},
+    {c:'購物',zh:'可以免稅嗎？',ja:'免税できますか？',jr:'めんぜいできますか',ko:'면세 되나요?',kr:'myeonse doenayo?',en:"Is this tax-free?"},
+    {c:'購物',zh:'我要這個',ja:'これをください',jr:'これをください',ko:'이거 주세요',kr:'igeo juseyo',en:"I'll take this one"},
+    {c:'購物',zh:'有其他顏色嗎？',ja:'ほかの色はありますか？',jr:'ほかのいろはありますか',ko:'다른 색 있어요?',kr:'dareun saek isseoyo?',en:"Do you have other colors?"},
+    {c:'購物',zh:'有大一號的嗎？',ja:'もう少し大きいサイズはありますか？',jr:'もうすこしおおきいさいずはありますか',ko:'더 큰 사이즈 있어요?',kr:'deo keun saijeu isseoyo?',en:"Do you have a bigger size?"},
+    {c:'購物',zh:'可以試穿嗎？',ja:'試着してもいいですか？',jr:'しちゃくしてもいいですか',ko:'입어 봐도 돼요?',kr:'ibeo bwado dwaeyo?',en:"Can I try it on?"},
+    {c:'購物',zh:'請幫我包裝',ja:'包んでください',jr:'つつんでください',ko:'포장해 주세요',kr:'pojanghae juseyo',en:"Could you wrap it, please?"},
+    {c:'購物',zh:'不用袋子',ja:'袋はいりません',jr:'ふくろはいりません',ko:'봉투는 필요 없어요',kr:'bongtuneun piryo eopseoyo',en:"No bag, thanks"},
+    {c:'購物',zh:'我只是看看',ja:'見ているだけです',jr:'みているだけです',ko:'그냥 구경 중이에요',kr:'geunyang gugyeong jungieyo',en:"I'm just looking"},
+    {c:'購物',zh:'請給我收據',ja:'レシートをください',jr:'れしーとをください',ko:'영수증 주세요',kr:'yeongsujeung juseyo',en:"Receipt, please"},
     // 餐飲
-    {c:'餐飲',zh:'兩位',ja:'二人です',jr:'ふたりです',ko:'두 명이요',kr:'du myeongiyo'},
-    {c:'餐飲',zh:'有中文菜單嗎？',ja:'中国語のメニューはありますか？',jr:'ちゅうごくごのめにゅーはありますか',ko:'중국어 메뉴 있어요?',kr:'junggugeo menyu isseoyo?'},
-    {c:'餐飲',zh:'請給我推薦的',ja:'おすすめをお願いします',jr:'おすすめをおねがいします',ko:'추천 메뉴로 주세요',kr:'chucheon menyuro juseyo'},
-    {c:'餐飲',zh:'我要點餐',ja:'注文お願いします',jr:'ちゅうもんおねがいします',ko:'주문할게요',kr:'jumunhalgeyo'},
-    {c:'餐飲',zh:'我要這個和這個',ja:'これとこれをください',jr:'これとこれをください',ko:'이거랑 이거 주세요',kr:'igeorang igeo juseyo'},
-    {c:'餐飲',zh:'不要太辣',ja:'辛くしないでください',jr:'からくしないでください',ko:'안 맵게 해 주세요',kr:'an maepge hae juseyo'},
-    {c:'餐飲',zh:'我對○○過敏',ja:'○○アレルギーがあります',jr:'○○あれるぎーがあります',ko:'○○ 알레르기가 있어요',kr:'○○ allereugiga isseoyo'},
-    {c:'餐飲',zh:'我吃素',ja:'ベジタリアンです',jr:'べじたりあんです',ko:'채식주의자예요',kr:'chaesikjuuijayeyo'},
-    {c:'餐飲',zh:'請給我水',ja:'お水をください',jr:'おみずをください',ko:'물 주세요',kr:'mul juseyo'},
-    {c:'餐飲',zh:'請結帳',ja:'お会計お願いします',jr:'おかいけいおねがいします',ko:'계산해 주세요',kr:'gyesanhae juseyo'},
-    {c:'餐飲',zh:'可以分開結帳嗎？',ja:'別々に払えますか？',jr:'べつべつにはらえますか',ko:'따로 계산할 수 있어요?',kr:'ttaro gyesanhal su isseoyo?'},
-    {c:'餐飲',zh:'很好吃',ja:'とても美味しかったです',jr:'とてもおいしかったです',ko:'정말 맛있었어요',kr:'jeongmal masisseosseoyo'},
-    {c:'餐飲',zh:'可以外帶嗎？',ja:'持ち帰りできますか？',jr:'もちかえりできますか',ko:'포장 되나요?',kr:'pojang doenayo?'},
+    {c:'餐飲',zh:'兩位',ja:'二人です',jr:'ふたりです',ko:'두 명이요',kr:'du myeongiyo',en:"Table for two, please"},
+    {c:'餐飲',zh:'有中文菜單嗎？',ja:'中国語のメニューはありますか？',jr:'ちゅうごくごのめにゅーはありますか',ko:'중국어 메뉴 있어요?',kr:'junggugeo menyu isseoyo?',en:"Do you have a Chinese menu?"},
+    {c:'餐飲',zh:'請給我推薦的',ja:'おすすめをお願いします',jr:'おすすめをおねがいします',ko:'추천 메뉴로 주세요',kr:'chucheon menyuro juseyo',en:"What do you recommend?"},
+    {c:'餐飲',zh:'我要點餐',ja:'注文お願いします',jr:'ちゅうもんおねがいします',ko:'주문할게요',kr:'jumunhalgeyo',en:"I'd like to order"},
+    {c:'餐飲',zh:'我要這個和這個',ja:'これとこれをください',jr:'これとこれをください',ko:'이거랑 이거 주세요',kr:'igeorang igeo juseyo',en:"This one and this one, please"},
+    {c:'餐飲',zh:'不要太辣',ja:'辛くしないでください',jr:'からくしないでください',ko:'안 맵게 해 주세요',kr:'an maepge hae juseyo',en:"Not too spicy, please"},
+    {c:'餐飲',zh:'我對○○過敏',ja:'○○アレルギーがあります',jr:'○○あれるぎーがあります',ko:'○○ 알레르기가 있어요',kr:'○○ allereugiga isseoyo',en:"I'm allergic to ○○"},
+    {c:'餐飲',zh:'我吃素',ja:'ベジタリアンです',jr:'べじたりあんです',ko:'채식주의자예요',kr:'chaesikjuuijayeyo',en:"I'm vegetarian"},
+    {c:'餐飲',zh:'請給我水',ja:'お水をください',jr:'おみずをください',ko:'물 주세요',kr:'mul juseyo',en:"Water, please"},
+    {c:'餐飲',zh:'請結帳',ja:'お会計お願いします',jr:'おかいけいおねがいします',ko:'계산해 주세요',kr:'gyesanhae juseyo',en:"Check, please"},
+    {c:'餐飲',zh:'可以分開結帳嗎？',ja:'別々に払えますか？',jr:'べつべつにはらえますか',ko:'따로 계산할 수 있어요?',kr:'ttaro gyesanhal su isseoyo?',en:"Can we pay separately?"},
+    {c:'餐飲',zh:'很好吃',ja:'とても美味しかったです',jr:'とてもおいしかったです',ko:'정말 맛있었어요',kr:'jeongmal masisseosseoyo',en:"It was delicious"},
+    {c:'餐飲',zh:'可以外帶嗎？',ja:'持ち帰りできますか？',jr:'もちかえりできますか',ko:'포장 되나요?',kr:'pojang doenayo?',en:"Can I get this to go?"},
     // 住宿
-    {c:'住宿',zh:'我有訂房，名字是○○',ja:'予約しています。○○です',jr:'よやくしています。○○です',ko:'예약했어요. 이름은 ○○입니다',kr:'yeyakhaesseoyo. ireumeun ○○imnida'},
-    {c:'住宿',zh:'可以寄放行李嗎？',ja:'荷物を預かってもらえますか？',jr:'にもつをあずかってもらえますか',ko:'짐 맡길 수 있어요?',kr:'jim matgil su isseoyo?'},
-    {c:'住宿',zh:'幾點退房？',ja:'チェックアウトは何時ですか？',jr:'ちぇっくあうとはなんじですか',ko:'체크아웃 몇 시예요?',kr:'chekeuaut myeot siyeyo?'},
-    {c:'住宿',zh:'Wi-Fi 密碼是什麼？',ja:'Wi-Fiのパスワードは何ですか？',jr:'わいふぁいのぱすわーどはなんですか',ko:'와이파이 비밀번호가 뭐예요?',kr:'waipai bimilbeonhoga mwoyeyo?'},
-    {c:'住宿',zh:'早餐幾點開始？',ja:'朝食は何時からですか？',jr:'ちょうしょくはなんじからですか',ko:'아침 식사 몇 시부터예요?',kr:'achim siksa myeot sibuteoyeyo?'},
-    {c:'住宿',zh:'房間的○○壞了',ja:'部屋の○○が壊れています',jr:'へやの○○がこわれています',ko:'방 ○○이 고장 났어요',kr:'bang ○○i gojang nasseoyo'},
-    {c:'住宿',zh:'請幫我叫計程車',ja:'タクシーを呼んでください',jr:'たくしーをよんでください',ko:'택시 불러 주세요',kr:'taeksi bulleo juseyo'},
+    {c:'住宿',zh:'我有訂房，名字是○○',ja:'予約しています。○○です',jr:'よやくしています。○○です',ko:'예약했어요. 이름은 ○○입니다',kr:'yeyakhaesseoyo. ireumeun ○○imnida',en:"I have a reservation under ○○"},
+    {c:'住宿',zh:'可以寄放行李嗎？',ja:'荷物を預かってもらえますか？',jr:'にもつをあずかってもらえますか',ko:'짐 맡길 수 있어요?',kr:'jim matgil su isseoyo?',en:"Can I leave my luggage here?"},
+    {c:'住宿',zh:'幾點退房？',ja:'チェックアウトは何時ですか？',jr:'ちぇっくあうとはなんじですか',ko:'체크아웃 몇 시예요?',kr:'chekeuaut myeot siyeyo?',en:"What time is check-out?"},
+    {c:'住宿',zh:'Wi-Fi 密碼是什麼？',ja:'Wi-Fiのパスワードは何ですか？',jr:'わいふぁいのぱすわーどはなんですか',ko:'와이파이 비밀번호가 뭐예요?',kr:'waipai bimilbeonhoga mwoyeyo?',en:"What's the Wi-Fi password?"},
+    {c:'住宿',zh:'早餐幾點開始？',ja:'朝食は何時からですか？',jr:'ちょうしょくはなんじからですか',ko:'아침 식사 몇 시부터예요?',kr:'achim siksa myeot sibuteoyeyo?',en:"What time does breakfast start?"},
+    {c:'住宿',zh:'房間的○○壞了',ja:'部屋の○○が壊れています',jr:'へやの○○がこわれています',ko:'방 ○○이 고장 났어요',kr:'bang ○○i gojang nasseoyo',en:"The ○○ in my room is broken"},
+    {c:'住宿',zh:'請幫我叫計程車',ja:'タクシーを呼んでください',jr:'たくしーをよんでください',ko:'택시 불러 주세요',kr:'taeksi bulleo juseyo',en:"Could you call a taxi for me?"},
     // 緊急
-    {c:'緊急',zh:'請幫幫我',ja:'助けてください',jr:'たすけてください',ko:'도와주세요',kr:'dowajuseyo'},
-    {c:'緊急',zh:'請叫救護車',ja:'救急車を呼んでください',jr:'きゅうきゅうしゃをよんでください',ko:'구급차를 불러 주세요',kr:'gugeupchareul bulleo juseyo'},
-    {c:'緊急',zh:'請叫警察',ja:'警察を呼んでください',jr:'けいさつをよんでください',ko:'경찰을 불러 주세요',kr:'gyeongchareul bulleo juseyo'},
-    {c:'緊急',zh:'我不舒服',ja:'気分が悪いです',jr:'きぶんがわるいです',ko:'몸이 안 좋아요',kr:'momi an joayo'},
-    {c:'緊急',zh:'這裡痛',ja:'ここが痛いです',jr:'ここがいたいです',ko:'여기가 아파요',kr:'yeogiga apayo'},
-    {c:'緊急',zh:'醫院在哪裡？',ja:'病院はどこですか？',jr:'びょういんはどこですか',ko:'병원이 어디예요?',kr:'byeongwoni eodiyeyo?'},
-    {c:'緊急',zh:'藥局在哪裡？',ja:'薬局はどこですか？',jr:'やっきょくはどこですか',ko:'약국이 어디예요?',kr:'yakgugi eodiyeyo?'},
-    {c:'緊急',zh:'我的護照不見了',ja:'パスポートをなくしました',jr:'ぱすぽーとをなくしました',ko:'여권을 잃어버렸어요',kr:'yeogwoneul ireobeoryeosseoyo'},
-    {c:'緊急',zh:'我迷路了',ja:'道に迷いました',jr:'みちにまよいました',ko:'길을 잃었어요',kr:'gireul ireosseoyo'},
-    {c:'緊急',zh:'廁所在哪裡？',ja:'トイレはどこですか？',jr:'といれはどこですか',ko:'화장실이 어디예요?',kr:'hwajangsiri eodiyeyo?'},
+    {c:'緊急',zh:'請幫幫我',ja:'助けてください',jr:'たすけてください',ko:'도와주세요',kr:'dowajuseyo',en:"Please help me"},
+    {c:'緊急',zh:'請叫救護車',ja:'救急車を呼んでください',jr:'きゅうきゅうしゃをよんでください',ko:'구급차를 불러 주세요',kr:'gugeupchareul bulleo juseyo',en:"Please call an ambulance"},
+    {c:'緊急',zh:'請叫警察',ja:'警察を呼んでください',jr:'けいさつをよんでください',ko:'경찰을 불러 주세요',kr:'gyeongchareul bulleo juseyo',en:"Please call the police"},
+    {c:'緊急',zh:'我不舒服',ja:'気分が悪いです',jr:'きぶんがわるいです',ko:'몸이 안 좋아요',kr:'momi an joayo',en:"I don't feel well"},
+    {c:'緊急',zh:'這裡痛',ja:'ここが痛いです',jr:'ここがいたいです',ko:'여기가 아파요',kr:'yeogiga apayo',en:"It hurts here"},
+    {c:'緊急',zh:'醫院在哪裡？',ja:'病院はどこですか？',jr:'びょういんはどこですか',ko:'병원이 어디예요?',kr:'byeongwoni eodiyeyo?',en:"Where is the hospital?"},
+    {c:'緊急',zh:'藥局在哪裡？',ja:'薬局はどこですか？',jr:'やっきょくはどこですか',ko:'약국이 어디예요?',kr:'yakgugi eodiyeyo?',en:"Where is the pharmacy?"},
+    {c:'緊急',zh:'我的護照不見了',ja:'パスポートをなくしました',jr:'ぱすぽーとをなくしました',ko:'여권을 잃어버렸어요',kr:'yeogwoneul ireobeoryeosseoyo',en:"I lost my passport"},
+    {c:'緊急',zh:'我迷路了',ja:'道に迷いました',jr:'みちにまよいました',ko:'길을 잃었어요',kr:'gireul ireosseoyo',en:"I'm lost"},
+    {c:'緊急',zh:'廁所在哪裡？',ja:'トイレはどこですか？',jr:'といれはどこですか',ko:'화장실이 어디예요?',kr:'hwajangsiri eodiyeyo?',en:"Where is the restroom?"},
     // 數字時間
-    {c:'數字',zh:'一、二、三、四、五',ja:'いち、に、さん、し、ご',jr:'いち、に、さん、し、ご',ko:'일, 이, 삼, 사, 오',kr:'il, i, sam, sa, o'},
-    {c:'數字',zh:'六、七、八、九、十',ja:'ろく、しち、はち、きゅう、じゅう',jr:'ろく、しち、はち、きゅう、じゅう',ko:'육, 칠, 팔, 구, 십',kr:'yuk, chil, pal, gu, sip'},
-    {c:'數字',zh:'一百／一千／一萬',ja:'ひゃく／せん／いちまん',jr:'ひゃく／せん／いちまん',ko:'백 / 천 / 만',kr:'baek / cheon / man'},
-    {c:'數字',zh:'現在幾點？',ja:'今何時ですか？',jr:'いまなんじですか',ko:'지금 몇 시예요?',kr:'jigeum myeot siyeyo?'},
-    {c:'數字',zh:'今天／明天／後天',ja:'今日／明日／明後日',jr:'きょう／あした／あさって',ko:'오늘 / 내일 / 모레',kr:'oneul / naeil / more'},
-    {c:'數字',zh:'幾點開門？',ja:'何時に開きますか？',jr:'なんじにあきますか',ko:'몇 시에 열어요?',kr:'myeot sie yeoreoyo?'},
-    {c:'數字',zh:'幾點關門？',ja:'何時に閉まりますか？',jr:'なんじにしまりますか',ko:'몇 시에 닫아요?',kr:'myeot sie dadayo?'}
+    {c:'數字',zh:'一、二、三、四、五',ja:'いち、に、さん、し、ご',jr:'いち、に、さん、し、ご',ko:'일, 이, 삼, 사, 오',kr:'il, i, sam, sa, o',en:"One, two, three, four, five"},
+    {c:'數字',zh:'六、七、八、九、十',ja:'ろく、しち、はち、きゅう、じゅう',jr:'ろく、しち、はち、きゅう、じゅう',ko:'육, 칠, 팔, 구, 십',kr:'yuk, chil, pal, gu, sip',en:"Six, seven, eight, nine, ten"},
+    {c:'數字',zh:'一百／一千／一萬',ja:'ひゃく／せん／いちまん',jr:'ひゃく／せん／いちまん',ko:'백 / 천 / 만',kr:'baek / cheon / man',en:"One hundred / one thousand / ten thousand"},
+    {c:'數字',zh:'現在幾點？',ja:'今何時ですか？',jr:'いまなんじですか',ko:'지금 몇 시예요?',kr:'jigeum myeot siyeyo?',en:"What time is it?"},
+    {c:'數字',zh:'今天／明天／後天',ja:'今日／明日／明後日',jr:'きょう／あした／あさって',ko:'오늘 / 내일 / 모레',kr:'oneul / naeil / more',en:"Today / tomorrow / the day after tomorrow"},
+    {c:'數字',zh:'幾點開門？',ja:'何時に開きますか？',jr:'なんじにあきますか',ko:'몇 시에 열어요?',kr:'myeot sie yeoreoyo?',en:"What time do you open?"},
+    {c:'數字',zh:'幾點關門？',ja:'何時に閉まりますか？',jr:'なんじにしまりますか',ko:'몇 시에 닫아요?',kr:'myeot sie dadayo?',en:"What time do you close?"}
   ];
 
+  function readingOf(p, lang){ return lang==='ja' ? p.jr : lang==='ko' ? p.kr : ''; }
   var them = 'ja';   // 對面目前的語言
   try{ var saved = localStorage.getItem('them-lang'); if(saved && LANG[saved]) them = saved; }catch(e){}
 
@@ -404,7 +411,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
       if(score>bestScore){ bestScore = score; best = p; }
     });
     if(!best || bestScore<1.4) return null;
-    return to==='zh' ? {t:best.zh, r:''} : {t:best[to], r:to==='ja' ? best.jr : best.kr};
+    return to==='zh' ? {t:best.zh, r:''} : {t:best[to], r:readingOf(best,to)};
   }
 
   /* ── 翻譯 ── */
@@ -514,15 +521,16 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   function renderBook(){
     var list = $('book-list'); list.innerHTML='';
     var q = norm($('book-q').value);
-    var lang = them, rk = lang==='ja' ? 'jr' : 'kr', n = 0;
+    var lang = them, n = 0;
     PHRASES.forEach(function(p){
       if(bookCat!=='全部' && p.c!==bookCat) return;
-      if(q && norm(p.zh).indexOf(q)<0 && norm(p[lang]).indexOf(q)<0 && norm(p[rk]).indexOf(q)<0) return;
+      var rd = readingOf(p,lang);
+      if(q && norm(p.zh).indexOf(q)<0 && norm(p[lang]).indexOf(q)<0 && norm(rd).indexOf(q)<0) return;
       var b = document.createElement('button'); b.type='button'; b.className='ph';
       var z = document.createElement('div'); z.className='z'; z.textContent = p.zh;
       var f = document.createElement('div'); f.className='f'; f.textContent = p[lang];
-      var r = document.createElement('div'); r.className='r'; r.textContent = p[rk];
-      if(bookSide==='them'){ b.appendChild(f); b.appendChild(r); b.appendChild(z); } else { b.appendChild(z); b.appendChild(f); b.appendChild(r); }
+      var r = document.createElement('div'); r.className='r'; r.textContent = rd;
+      if(bookSide==='them'){ b.appendChild(f); if(rd) b.appendChild(r); b.appendChild(z); } else { b.appendChild(z); b.appendChild(f); if(rd) b.appendChild(r); }
       b.addEventListener('click', function(){ usePhrase(p); });
       list.appendChild(b); n++;
     });
@@ -530,11 +538,11 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   }
   function usePhrase(p){
     closeBook();
-    var lang = them, rk = lang==='ja' ? 'jr' : 'kr';
+    var lang = them, rd = readingOf(p,lang);
     if(bookSide==='zh'){
       addBubble('zh', 'me', p.zh, null, null);
       addBubble('them', 'them', p[lang], null, lang);
-      var mine = addBubble('zh', 'me', p[lang], p[rk], lang); mine.style.background='#fbfaf6';
+      var mine = addBubble('zh', 'me', p[lang], rd || null, lang); mine.style.background='#fbfaf6';
       speak(p[lang], lang);
     } else {
       addBubble('them', 'me', p[lang], null, null);
@@ -571,11 +579,6 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 
   applyLang();
 })();
-</script>
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
-}
 </script>
 </body>
 </html>
