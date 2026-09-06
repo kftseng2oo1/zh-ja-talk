@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="對面說">
+<meta name="theme-color" content="#1c2a5a">
+<meta name="color-scheme" content="light">
+<title>對面說 — 中日面對面翻譯</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --paper:#f7f4ec;      /* 和紙 */
+  --ink:#1c2a5a;        /* 藍染 */
+  --ink-soft:#4a5680;
+  --vermilion:#c8412a;  /* 朱 */
+  --line:#d9d3c4;
+  --bubble-me:#ffffff;
+  --bubble-them:#e8ecf6;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:light;
+  font-family:-apple-system,"PingFang TC","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans TC","Noto Sans JP",sans-serif;
+  -webkit-text-size-adjust:100%;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;background:var(--paper);
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+
+/* 兩個面對面的半面 */
+.side{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;background:var(--paper)}
+.side.ja{transform:rotate(180deg)}
+.side.ja.upright{transform:none}
+.divider{flex:none;height:36px;background:var(--ink);display:flex;align-items:center;justify-content:center}
+.divider button{background:var(--paper);color:var(--ink);border:0;border-radius:999px;
+  padding:5px 14px;font-size:13px;font-weight:600;letter-spacing:.02em;line-height:1}
+
+.log{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
+.empty{color:var(--ink-soft);font-size:15px;line-height:1.6;text-align:center;margin:auto;padding:0 20px}
+.empty b{display:block;font-size:22px;color:var(--ink);margin-bottom:6px}
+
+.msg{max-width:88%;border-radius:18px;padding:10px 14px;line-height:1.45;position:relative;word-break:break-word}
+.msg.me{align-self:flex-end;background:var(--bubble-me);border:1px solid var(--line);
+  border-bottom-right-radius:6px}
+.msg.them{align-self:flex-start;background:var(--bubble-them);border-bottom-left-radius:6px}
+.msg .big{font-size:26px;font-weight:600;line-height:1.35}
+.msg.me .big{font-size:20px;font-weight:500}
+.msg .sub{font-size:14px;color:var(--ink-soft);margin-top:4px}
+.msg .say{position:absolute;right:-4px;bottom:-4px;width:34px;height:34px;border-radius:50%;
+  border:0;background:var(--vermilion);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.msg.pending .big{color:var(--ink-soft);font-weight:400;font-size:18px}
+.msg.error{background:#fbe9e5}.msg.error .big{font-size:18px;color:var(--vermilion)}
+
+/* 輸入區 */
+.bar{flex:none;padding:8px 10px 10px;border-top:1px solid var(--line);background:var(--paper)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;border:1px solid var(--line);background:#fff;color:var(--ink);
+  border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row textarea{flex:1;resize:none;border:1.5px solid var(--line);border-radius:14px;background:#fff;
+  font:inherit;font-size:17px;padding:10px 12px;min-height:44px;max-height:96px;line-height:1.35;color:var(--ink)}
+.row textarea:focus{outline:none;border-color:var(--ink)}
+.btn{flex:none;width:44px;height:44px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.btn.mic{background:var(--ink);color:var(--paper)}
+.btn.mic.on{background:var(--vermilion);animation:pulse 1s infinite}
+.btn.mic.off{opacity:.35}
+.btn.send{background:#fff;border:1.5px solid var(--ink);color:var(--ink);font-weight:700;font-size:16px}
+.btn:active{transform:scale(.94)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(200,65,42,.5)}50%{box-shadow:0 0 0 10px rgba(200,65,42,0)}}
+@media (prefers-reduced-motion:reduce){.btn.mic.on{animation:none}}
+
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ink);color:var(--paper);
+  padding:10px 16px;border-radius:12px;font-size:14px;max-width:80%;text-align:center;z-index:9;
+  opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 中文這一面（自己） -->
+  <section class="side zh" id="side-zh">
+    <div class="log" id="log-zh">
+      <div class="empty"><b>對面說</b>你說中文，對面顯示日文。<br>按麥克風說話，或直接打字。</div>
+    </div>
+    <div class="bar">
+      <div class="chips" id="chips-zh"></div>
+      <div class="row">
+        <button class="btn mic" id="mic-zh" aria-label="中文語音輸入">🎤</button>
+        <textarea id="in-zh" rows="1" placeholder="說中文…" enterkeyhint="send"></textarea>
+        <button class="btn send" id="send-zh" aria-label="送出">譯</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"><button id="flip">翻轉對面 ⟲</button></div>
+
+  <!-- 日文這一面（對方，預設旋轉 180° 讓對面的人看） -->
+  <section class="side ja" id="side-ja">
+    <div class="log" id="log-ja">
+      <div class="empty"><b>おはなし</b>日本語で話すと、相手側に中国語で表示されます。<br>マイクを押して話すか、入力してください。</div>
+    </div>
+    <div class="bar">
+      <div class="chips" id="chips-ja"></div>
+      <div class="row">
+        <button class="btn mic" id="mic-ja" aria-label="日本語音声入力">🎤</button>
+        <textarea id="in-ja" rows="1" placeholder="日本語で…" enterkeyhint="send"></textarea>
+        <button class="btn send" id="send-ja" aria-label="送信">訳</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  var WORKER_URL = 'https://arcar.kftseng2oo1.workers.dev';   // 你的中央代理 Worker
+  var MODEL = 'claude-sonnet-4-6';
+  // claude.ai 預覽時直接打 Anthropic（平台代理）；部署到 GitHub Pages 時走 Worker
+  var h = location.hostname;
+  var ENDPOINT = (h.indexOf('claude.ai')>-1 || h.indexOf('anthropic.com')>-1 || h.indexOf('claudeusercontent.com')>-1)
+    ? 'https://api.anthropic.com/v1/messages' : WORKER_URL;
+
+  var LANG = {
+    zh:{ code:'zh-TW', name:'繁體中文（台灣）', other:'ja', ttsFallback:'zh-CN',
+         chips:['你好，我不會說日文','請問這個多少錢？','廁所在哪裡？','可以刷卡嗎？','請再說一次','謝謝你'] },
+    ja:{ code:'ja-JP', name:'日本語', other:'zh', ttsFallback:'ja',
+         chips:['こんにちは','少々お待ちください','こちらへどうぞ','おすすめはこれです','大丈夫ですか？','ありがとうございます'] }
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+  var logs = { zh:$('log-zh'), ja:$('log-ja') };
+  var inputs = { zh:$('in-zh'), ja:$('in-ja') };
+  var mics = { zh:$('mic-zh'), ja:$('mic-ja') };
+  var busy = false;
+
+  /* ── toast（不用 alert） ── */
+  var toastTimer;
+  function toast(t){
+    var el = $('toast'); el.textContent = t; el.className = 'toast show';
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.className = 'toast'; }, 4000);
+  }
+
+  /* ── 快速片語 ── */
+  function buildChips(lang){
+    var box = $('chips-'+lang);
+    LANG[lang].chips.forEach(function(p){
+      var b = document.createElement('button'); b.type='button'; b.textContent = p;
+      b.addEventListener('click', function(){ send(lang, p); });
+      box.appendChild(b);
+    });
+  }
+  buildChips('zh'); buildChips('ja');
+
+  /* ── 語音合成 ── */
+  function speak(text, lang){
+    if(!('speechSynthesis' in window)){ toast('此裝置不支援朗讀'); return; }
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = LANG[lang].code; u.rate = 0.95;
+    var voices = speechSynthesis.getVoices();
+    for(var i=0;i<voices.length;i++){
+      if(voices[i].lang.replace('_','-').indexOf(LANG[lang].code.split('-')[0])===0){ u.voice = voices[i]; break; }
+    }
+    speechSynthesis.speak(u);
+  }
+  if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){}; }
+
+  /* ── 語音辨識 ── */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = null, recLang = null;
+  function startRec(lang){
+    if(!SR){ toast('此瀏覽器不支援語音輸入，請打字'); return; }
+    if(rec){ stopRec(); return; }
+    rec = new SR(); recLang = lang;
+    rec.lang = LANG[lang].code; rec.interimResults = true; rec.continuous = false;
+    mics[lang].className = 'btn mic on';
+    rec.onresult = function(e){
+      var t = '';
+      for(var i=0;i<e.results.length;i++) t += e.results[i][0].transcript;
+      inputs[lang].value = t;
+      if(e.results[e.results.length-1].isFinal){ stopRec(); send(lang, t); }
+    };
+    rec.onerror = function(e){ stopRec(); if(e.error!=='no-speech' && e.error!=='aborted') toast('語音輸入失敗：'+e.error); };
+    rec.onend = function(){ stopRec(); };
+    try{ rec.start(); }catch(err){ stopRec(); toast('無法啟動麥克風'); }
+  }
+  function stopRec(){
+    if(rec){ try{ rec.onend=null; rec.stop(); }catch(e){} }
+    if(recLang) mics[recLang].className = 'btn mic';
+    rec = null; recLang = null;
+  }
+  if(!SR){ mics.zh.className = 'btn mic off'; mics.ja.className = 'btn mic off'; }
+
+  /* ── 對話氣泡 ── */
+  function clearEmpty(lang){
+    var e = logs[lang].querySelector('.empty'); if(e) e.parentNode.removeChild(e);
+  }
+  function addBubble(lang, kind, big, sub, speakLang){
+    clearEmpty(lang);
+    var d = document.createElement('div'); d.className = 'msg '+kind;
+    var b = document.createElement('div'); b.className = 'big'; b.textContent = big; d.appendChild(b);
+    if(sub){ var s = document.createElement('div'); s.className='sub'; s.textContent = sub; d.appendChild(s); }
+    if(speakLang){
+      var btn = document.createElement('button'); btn.className='say'; btn.textContent='🔊'; btn.type='button';
+      btn.setAttribute('aria-label','朗讀');
+      btn.addEventListener('click', function(){ speak(big, speakLang); });
+      d.appendChild(btn);
+    }
+    logs[lang].appendChild(d);
+    logs[lang].scrollTop = logs[lang].scrollHeight;
+    return d;
+  }
+
+  /* ── 翻譯 ── */
+  function translate(text, from){
+    var to = LANG[from].other;
+    var prompt =
+      '你是一位專業的中日口譯員，正在協助兩個人面對面交談。\n'+
+      '請把下面這句「'+LANG[from].name+'」翻譯成「'+LANG[to].name+'」，口語、自然、有禮貌，保留原意，不要加註解。\n'+
+      '只回傳 JSON（不要用 ```），格式：{"t":"翻譯結果","r":"翻譯結果的讀音"}\n'+
+      '「r」的規則：若翻譯成日文，r 為全句的平假名讀音；若翻譯成中文，r 留空字串。\n\n'+
+      '原文：'+text;
+    return fetch(ENDPOINT, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:MODEL, max_tokens:400, messages:[{role:'user', content:prompt}] })
+    }).then(function(r){
+      return r.text().then(function(t){
+        var d; try{ d = JSON.parse(t); }catch(e){ throw new Error('HTTP '+r.status+'：'+t.slice(0,80)); }
+        if(!r.ok && !d.error) throw new Error('HTTP '+r.status);
+        return d;
+      });
+    }).then(function(data){
+      if(data.error) throw new Error(typeof data.error==='string' ? data.error : (data.error.message || JSON.stringify(data.error)));
+      var txt = '';
+      (data.content||[]).forEach(function(c){ if(c.type==='text') txt += c.text; });
+      txt = txt.replace(/```json|```/g,'').trim();
+      var m = txt.match(/\{[\s\S]*\}/);
+      var obj = JSON.parse(m ? m[0] : txt);
+      if(!obj.t) throw new Error('empty');
+      return obj;
+    });
+  }
+
+  function send(lang, text){
+    text = (text || inputs[lang].value).trim();
+    if(!text || busy) return;
+    busy = true;
+    var to = LANG[lang].other;
+    inputs[lang].value = ''; autosize(inputs[lang]);
+    addBubble(lang, 'me', text, null, null);
+    var pending = addBubble(to, 'pending them', lang==='zh' ? '翻訳中…' : '翻譯中…', null, null);
+    translate(text, lang).then(function(res){
+      pending.parentNode.removeChild(pending);
+      addBubble(to, 'them', res.t, null, to);                    // 對面看到的翻譯
+      var mine = addBubble(lang, 'me', res.t, res.r || null, to); // 自己這邊也看到，方便跟著唸
+      mine.style.background = '#fbfaf6';
+      speak(res.t, to);
+    }).catch(function(err){
+      var msg = err.message || '網路錯誤';
+      if(msg==='Failed to fetch' || msg==='Load failed') msg = '連不到伺服器（'+ENDPOINT.replace(/^https?:\/\//,'')+'）';
+      pending.className = 'msg them error';
+      pending.querySelector('.big').textContent = (lang==='zh' ? '翻訳できませんでした' : '翻譯失敗');
+      var s = document.createElement('div'); s.className='sub'; s.textContent = msg; pending.appendChild(s);
+      toast('翻譯失敗：'+msg);
+      inputs[lang].value = text;
+    }).then(function(){ busy = false; });
+  }
+
+  /* ── 輸入框 ── */
+  function autosize(ta){ ta.style.height='auto'; ta.style.height = Math.min(ta.scrollHeight, 96)+'px'; }
+  ['zh','ja'].forEach(function(lang){
+    var ta = inputs[lang];
+    ta.addEventListener('input', function(){ autosize(ta); });
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(lang); }
+    });
+    $('send-'+lang).addEventListener('click', function(){ send(lang); });
+    mics[lang].addEventListener('click', function(){ startRec(lang); });
+  });
+
+  /* ── 翻轉對面（並排坐時用） ── */
+  $('flip').addEventListener('click', function(){
+    var s = $('side-ja');
+    s.className = s.className.indexOf('upright')>-1 ? 'side ja' : 'side ja upright';
+  });
+})();
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+}
+</script>
+</body>
+</html>
