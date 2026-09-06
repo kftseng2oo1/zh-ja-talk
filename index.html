@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="對面說">
@@ -20,6 +20,7 @@
   --line:#d9d3c4;
   --bubble-me:#ffffff;
   --bubble-them:#e8ecf6;
+  --fs:1;            /* 字級倍率，A 鈕切換 */
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:light;
@@ -33,6 +34,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 .side.them.upright{transform:none}
 
 .divider{flex:none;height:40px;background:var(--ink);position:relative;display:flex;align-items:center;justify-content:center;gap:8px}
+.fsbtn{position:absolute;right:10px;border:0;background:transparent;color:var(--paper);font-weight:700;font-size:15px;padding:6px 8px;line-height:1}
 .dot{position:absolute;left:14px;width:10px;height:10px;border-radius:50%;background:#999}
 .dot.ok{background:#3fa34d}.dot.bad{background:var(--vermilion)}
 .seg{display:flex;background:rgba(255,255,255,.14);border-radius:999px;padding:3px}
@@ -43,28 +45,28 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 
 .log{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 14px;
   display:flex;flex-direction:column;justify-content:flex-end;gap:10px}
-.empty{color:var(--ink-soft);font-size:15px;line-height:1.6;text-align:center;margin:auto;padding:0 20px}
-.empty b{display:block;font-size:22px;color:var(--ink);margin-bottom:6px}
+.empty{color:var(--ink-soft);font-size:calc(15px*var(--fs));line-height:1.6;text-align:center;margin:auto;padding:0 20px}
+.empty b{display:block;font-size:calc(22px*var(--fs));color:var(--ink);margin-bottom:6px}
 
 .msg{max-width:88%;border-radius:18px;padding:10px 14px;line-height:1.45;position:relative;word-break:break-word}
 .msg.me{align-self:flex-end;background:var(--bubble-me);border:1px solid var(--line);border-bottom-right-radius:6px}
 .msg.them{align-self:flex-start;background:var(--bubble-them);border-bottom-left-radius:6px}
-.msg .big{font-size:26px;font-weight:600;line-height:1.35}
-.msg.me .big{font-size:20px;font-weight:500}
-.msg .sub{font-size:14px;color:var(--ink-soft);margin-top:4px}
+.msg .big{font-size:calc(26px*var(--fs));font-weight:600;line-height:1.35}
+.msg.me .big{font-size:calc(20px*var(--fs));font-weight:500}
+.msg .sub{font-size:calc(14px*var(--fs));color:var(--ink-soft);margin-top:4px}
 .msg .say{position:absolute;right:-4px;bottom:-4px;width:34px;height:34px;border-radius:50%;
   border:0;background:var(--vermilion);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;
   box-shadow:0 1px 4px rgba(0,0,0,.25)}
-.msg.pending .big{color:var(--ink-soft);font-weight:400;font-size:18px}
-.msg.error{background:#fbe9e5}.msg.error .big{font-size:18px;color:var(--vermilion)}
+.msg.pending .big{color:var(--ink-soft);font-weight:400;font-size:calc(18px*var(--fs))}
+.msg.error{background:#fbe9e5}.msg.error .big{font-size:calc(18px*var(--fs));color:var(--vermilion)}
 
 .bar{flex:none;padding:8px 10px 10px;border-top:1px solid var(--line);background:var(--paper)}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chips button{flex:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:14px;white-space:nowrap}
+.chips button{flex:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:6px 12px;font-size:calc(14px*var(--fs));white-space:nowrap}
 .row{display:flex;gap:8px;align-items:flex-end}
 .row textarea{flex:1;resize:none;border:1.5px solid var(--line);border-radius:14px;background:#fff;
-  font:inherit;font-size:17px;padding:10px 12px;min-height:44px;max-height:96px;line-height:1.35;color:var(--ink)}
+  font:inherit;font-size:calc(17px*var(--fs));padding:10px 12px;min-height:44px;max-height:120px;line-height:1.35;color:var(--ink)}
 .row textarea:focus{outline:none;border-color:var(--ink)}
 .btn{flex:none;width:44px;height:44px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;font-size:18px}
 .btn.mic{background:var(--ink);color:var(--paper)}
@@ -90,9 +92,9 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
 .cats button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .book-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 12px 12px}
 .ph{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;color:var(--ink);font:inherit}
-.ph .z{font-size:16px;font-weight:600}
-.ph .f{font-size:17px;margin-top:2px}
-.ph .r{font-size:13px;color:var(--ink-soft)}
+.ph .z{font-size:calc(16px*var(--fs));font-weight:600}
+.ph .f{font-size:calc(17px*var(--fs));margin-top:2px}
+.ph .r{font-size:calc(13px*var(--fs));color:var(--ink-soft)}
 .book-note{font-size:13px;color:var(--ink-soft);padding:6px 12px 0;text-align:center}
 .toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ink);color:var(--paper);
   padding:10px 16px;border-radius:12px;font-size:14px;max-width:80%;text-align:center;z-index:9;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -126,6 +128,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
       <button type="button" data-lang="en">English</button>
     </div>
     <button type="button" class="flip" id="flip">翻轉 ⟲</button>
+    <button type="button" class="fsbtn" id="fsbtn" aria-label="字體大小">A<small>A</small></button>
   </div>
 
   <!-- 對方那一面（日文或韓文，預設旋轉 180°） -->
@@ -486,7 +489,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   }
 
   /* ── 輸入框 ── */
-  function autosize(ta){ ta.style.height='auto'; ta.style.height = Math.min(ta.scrollHeight, 96)+'px'; }
+  function autosize(ta){ ta.style.height='auto'; ta.style.height = Math.min(ta.scrollHeight, 120)+'px'; }
   ['zh','them'].forEach(function(side){
     var ta = inputs[side];
     ta.addEventListener('input', function(){ autosize(ta); });
@@ -555,6 +558,20 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   $('book-them').addEventListener('click', function(){ openBook('them'); });
   $('book-close').addEventListener('click', closeBook);
   $('book-q').addEventListener('input', renderBook);
+
+  /* ── 字體大小（A 鈕循環：標準→大→特大→超大） ── */
+  var FS = [1, 1.25, 1.5, 1.8], FS_NAME = ['標準','大','特大','超大'], fsIdx = 0;
+  try{ fsIdx = parseInt(localStorage.getItem('fs-idx'),10) || 0; if(fsIdx<0||fsIdx>=FS.length) fsIdx = 0; }catch(e){}
+  function applyFs(){
+    document.documentElement.style.setProperty('--fs', FS[fsIdx]);
+    ['zh','them'].forEach(function(side){ autosize(inputs[side]); logs[side].scrollTop = logs[side].scrollHeight; });
+  }
+  $('fsbtn').addEventListener('click', function(){
+    fsIdx = (fsIdx+1) % FS.length;
+    try{ localStorage.setItem('fs-idx', fsIdx); }catch(e){}
+    applyFs(); toast('字體：'+FS_NAME[fsIdx]);
+  });
+  applyFs();
 
   /* ── 開站時測 Worker 連線 ── */
   function ping(){
