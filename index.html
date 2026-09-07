@@ -299,7 +299,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
     var box = $('chips-'+side); box.innerHTML = '';
     list.forEach(function(p){
       var b = document.createElement('button'); b.type='button'; b.textContent = p;
-      b.addEventListener('click', function(){ send(side, p); });
+      b.addEventListener('click', function(){ unlockTTS(); send(side, p); });
       box.appendChild(b);
     });
   }
@@ -329,19 +329,47 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
   });
 
   /* ── 語音合成 ── */
-  var voicesReady = false;
-  function speak(text, lang){
-    if(!('speechSynthesis' in window)){ toast('此裝置不支援朗讀'); return; }
-    speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(text);
-    u.lang = LANG[lang].code; u.rate = 0.95;
-    var voices = speechSynthesis.getVoices(), pre = LANG[lang].code.split('-')[0];
-    for(var i=0;i<voices.length;i++){
-      if(voices[i].lang.replace('_','-').indexOf(pre)===0){ u.voice = voices[i]; break; }
-    }
-    speechSynthesis.speak(u);
+  var HAS_TTS = ('speechSynthesis' in window);
+  var ttsUnlocked = false;
+  // iOS 規定：朗讀必須在使用者手勢裡先「解鎖」一次，否則翻譯回來後（非手勢情境）第一句會被吃掉
+  function unlockTTS(){
+    if(!HAS_TTS || ttsUnlocked) return;
+    ttsUnlocked = true;
+    try{
+      var u = new SpeechSynthesisUtterance('\u200B'); u.volume = 0; u.rate = 2;
+      speechSynthesis.speak(u);
+      speechSynthesis.getVoices();
+    }catch(e){}
   }
-  if('speechSynthesis' in window){ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = function(){ voicesReady = true; }; }
+  function pickVoice(lang){
+    var voices = speechSynthesis.getVoices(), pre = LANG[lang].code.split('-')[0], exact = null, loose = null;
+    for(var i=0;i<voices.length;i++){
+      var l = voices[i].lang.replace('_','-');
+      if(l===LANG[lang].code && !exact) exact = voices[i];
+      else if(l.indexOf(pre)===0 && !loose) loose = voices[i];
+    }
+    return exact || loose;
+  }
+  function speak(text, lang){
+    if(!HAS_TTS){ toast('此裝置不支援朗讀'); return; }
+    unlockTTS();
+    speechSynthesis.cancel();
+    // iOS 在 cancel() 後立刻 speak() 常常沒聲音，稍等一下再講
+    setTimeout(function(){
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = LANG[lang].code; u.rate = 0.95;
+      var v = pickVoice(lang); if(v) u.voice = v;
+      try{ speechSynthesis.resume(); }catch(e){}
+      speechSynthesis.speak(u);
+    }, 120);
+  }
+  if(HAS_TTS){
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = function(){ speechSynthesis.getVoices(); };
+    // 第一次碰螢幕就解鎖（touchend / click 都算手勢）
+    document.addEventListener('touchend', unlockTTS, {passive:true});
+    document.addEventListener('click', unlockTTS);
+  }
 
   /* ── 語音辨識 ── */
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -496,8 +524,8 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
     ta.addEventListener('keydown', function(e){
       if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(side); }
     });
-    $('send-'+side).addEventListener('click', function(){ send(side); });
-    mics[side].addEventListener('click', function(){ startRec(side); });
+    $('send-'+side).addEventListener('click', function(){ unlockTTS(); send(side); });
+    mics[side].addEventListener('click', function(){ unlockTTS(); startRec(side); });
   });
 
   /* ── 片語本 UI ── */
