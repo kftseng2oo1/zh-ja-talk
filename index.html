@@ -311,7 +311,7 @@ html,body{height:100%;background:var(--paper);color:var(--ink);color-scheme:ligh
     buildChips('them', L.chips);
     inputs.them.placeholder = L.placeholder;
     $('send-them').textContent = L.sendLabel;
-    $('empty-zh-lang').textContent = L.cn;
+    var ez = $('empty-zh-lang'); if(ez) ez.textContent = L.cn;
     var e = $('empty-them');
     if(e){ e.innerHTML=''; var b=document.createElement('b'); b.textContent=L.emptyTitle; e.appendChild(b);
       L.emptyBody.split('\n').forEach(function(line,i){ if(i) e.appendChild(document.createElement('br')); e.appendChild(document.createTextNode(line)); }); }
